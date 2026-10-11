@@ -1,0 +1,60 @@
+/* macOS Platform CSS
+ * ===================
+ * Imports shared styles and adds macOS-specific overrides.
+ */
+
+@import "../../src/index.css";
+@source "../../src";
+
+/* macOS-specific overrides */
+
+/* Title bar drag region */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Traffic light buttons spacing */
+body {
+  padding-top: 28px; /* Space for macOS title bar */
+}
+
+/* Vibrancy effect (when using transparent window) */
+.vibrancy-sidebar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+.dark .vibrancy-sidebar {
+  background: rgba(30, 30, 30, 0.8);
+}
+
+/* macOS-style scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

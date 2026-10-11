@@ -1,0 +1,210 @@
+# Cross-Platform Application Development Rules
+# =============================================
+# This file enforces the standard directory structure and development conventions
+# for cross-platform applications built with React, Vite, Electron, and Capacitor.
+
+## Project Structure
+
+The project follows a **shared source architecture** where all platform apps import
+from a common `src/` directory. Each platform adds only its native shell and
+platform-specific overrides.
+
+### Required Directory Structure
+
+```
+{project-root}/
+├── app.config.json          # Application configuration (REQUIRED)
+├── build.py                 # Unified build script (REQUIRED)
+├── package.json             # Root package.json for shared dependencies
+├── README.md                # Project documentation
+├── .gitignore               # Git ignore rules
+│
+├── src/                     # SHARED SOURCE (all platforms import from here)
+│   ├── App.jsx              # Main app component
+│   ├── main.jsx             # Web entry point (BrowserRouter)
+│   ├── index.css            # Base styles & theme variables
+│   ├── components/
+│   │   ├── features/        # Feature components
+│   │   ├── layout/          # Layout components
+│   │   └── ui/              # Reusable UI components
+│   ├── pages/               # Page components
+│   ├── store/               # Zustand state stores
+│   ├── hooks/               # React hooks
+│   ├── context/             # React contexts
+│   ├── utils/               # Utility functions
+│   ├── extensions/          # Editor extensions (if applicable)
+│   └── assets/              # Shared assets
+│
+├── public/                  # Shared public assets
+│   ├── favicon.png
+│   ├── logo-192.png
+│   └── vite.svg
+│
+├── app-web/                 # Web platform
+├── app-android/             # Android platform (Capacitor)
+├── app-ios/                 # iOS platform (Capacitor)
+├── app-macos/               # macOS platform (Electron)
+├── app-windows/             # Windows platform (Electron)
+│
+├── plans/                   # Design documents & plans
+├── logos/                   # Brand assets
+└── .github/                 # GitHub Actions workflows
+```
+
+### Platform App Structure (Each app-{platform}/)
+
+```
+app-{platform}/
+├── .gitignore               # Platform-specific git ignores
+├── .env.example             # Environment variables template
+├── index.html               # Entry HTML document
+├── package.json             # Dependencies & npm scripts
+├── vite.config.{js|ts}      # Vite build configuration
+├── README.md                # Platform-specific documentation
+│
+├── config/                  # Platform-specific configuration
+├── scripts/                 # Shell scripts (setup.sh, run.sh, build.sh)
+├── src/                     # Platform-specific source code
+│   ├── main.jsx             # Entry point (platform-specific router)
+│   ├── index.css            # Platform CSS overrides
+│   ├── hooks/               # Platform-specific hooks
+│   ├── utils/               # Platform-specific utilities
+│   └── native/              # Native bridge code
+├── public/                  # Static assets
+└── build/                   # Build resources (icons, signing configs)
+```
+
+## Conventions & Rules
+
+### 1. Router Selection by Platform
+
+| Platform Type | Router | Reason |
+|---------------|--------|--------|
+| Web (browser) | `BrowserRouter` | Standard browser history API |
+| Mobile (Capacitor) | `MemoryRouter` | WebView doesn't support History API |
+| Desktop (Electron) | `HashRouter` | `file://` protocol in production |
+
+### 2. Vite Alias Conventions
+
+| Platform Type | Alias | Resolves To |
+|---------------|-------|-------------|
+| Capacitor (Android, iOS) | `@` | `../src/` |
+| Electron (macOS, Windows) | `@web` | `../src/` |
+| Web | `@` | `../src/` |
+
+### 3. Package Deduplication (CRITICAL)
+
+Every `vite.config.{js|ts}` MUST include:
+```javascript
+resolve: {
+  dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+}
+```
+
+### 4. CSS Import Chain
+
+Every platform's `index.css` MUST:
+1. Import shared base styles: `@import "../../src/index.css";`
+2. Declare Tailwind source scanning: `@source "../../src";`
+3. Add platform-specific overrides AFTER the imports
+
+### 5. File Placement Rules
+
+- **Shared code** → `src/` (project root) — NEVER duplicate into platform apps
+- **Platform entry point** → `app-{platform}/src/main.jsx`
+- **Platform CSS** → `app-{platform}/src/index.css`
+- **Platform config** → `app-{platform}/config/`
+- **Shell scripts** → `app-{platform}/scripts/`
+- **Native bridge code** → `app-{platform}/src/native/`
+- **Build resources** → `app-{platform}/build/`
+- **Static assets** → `app-{platform}/public/`
+
+### 6. Naming Conventions
+
+| Item | Convention | Example |
+|------|-----------|---------|
+| Platform directory | `app-{platform}` | `app-android`, `app-macos` |
+| Package name | `{appname}-{platform}` | `myapp-android`, `myapp-macos` |
+| Config directory | `config/` | `config/capacitor.config.json` |
+| Scripts directory | `scripts/` | `scripts/setup.sh` |
+| Native code directory | `src/native/` | `src/native/main.ts` |
+
+## Reference Documents
+
+For detailed guidance, refer to these documents in the common folder:
+
+- **Cross-Platform Lessons Learned**: `/Users/anjan/LOCAL/my_apps/common/cross-platform-lessons-learned.md`
+  - Consolidated issues and solutions for Electron, Capacitor, and Vite
+  - DMG build fallback to ZIP when hdiutil fails
+  - Platform detection strategies
+
+- **Platform App Development Guide**: `/Users/anjan/LOCAL/my_apps/common/platform-app-development-guide.md`
+  - Comprehensive setup guide for new platforms
+  - build.py command reference
+  - Troubleshooting checklist
+
+- **Troubleshooting Guide**: `/Users/anjan/LOCAL/my_apps/common/troubleshooting-guide.md`
+  - Quick problem resolution
+  - Common error messages and fixes
+
+## Build Commands
+
+Use `./build.py` for all build operations:
+
+```bash
+# Web
+./build.py web:setup     # Initial setup
+./build.py web:dev       # Development server
+./build.py web:build     # Production build
+
+# Android
+./build.py android:setup # Initial setup
+./build.py android:run   # Run on device
+./build.py android:apk   # Build APK
+
+# iOS
+./build.py ios:setup     # Initial setup
+./build.py ios:run       # Run on simulator
+./build.py ios:xcode     # Open in Xcode
+
+# macOS
+./build.py mac:setup     # Initial setup
+./build.py mac:dev       # Development mode
+./build.py mac:dmg       # Build DMG (falls back to ZIP if needed)
+
+# Windows
+./build.py win:setup     # Initial setup
+./build.py win:dev       # Development mode
+./build.py win:nsis      # Build NSIS installer
+```
+
+## Quick Checklist for New Platforms
+
+- [ ] Create directory structure following the template
+- [ ] Configure Vite alias pointing to shared `src/`
+- [ ] Add `resolve.dedupe` for all stateful libraries
+- [ ] Add `@source` directive for Tailwind
+- [ ] Create platform-specific entry point (`main.jsx`)
+- [ ] Create platform-specific CSS with imports
+- [ ] Add platform to `app.config.json`
+- [ ] Add commands to `build.py` if needed
+
+## Reference Documentation
+
+For detailed component APIs, hook usage, utility functions, and platform setup instructions,
+see `docs/app-guide.md`. This documentation travels with every app created from this template.
+
+### Available Built-in Modules
+
+| Category | Location | Contents |
+|----------|----------|----------|
+| UI Components | `src/components/ui/` | Button, Modal, Toast, Loading |
+| Layout | `src/components/layout/` | AppLayout, ErrorBoundary |
+| Hooks | `src/hooks/` | useLocalStorage, useMediaQuery, useDebounce |
+| Store | `src/store/` | useAppStore (Zustand with persistence) |
+| Utilities | `src/utils/` | api, storage, validation, format, platform |
+| Config | `src/config/` | app, constants, env |
+| Context | `src/context/` | ThemeContext |
+
+When building features, **prefer using these built-in modules** over adding new dependencies.
+Import UI components via barrel export: `import { Button, Modal } from '@/components/ui';`

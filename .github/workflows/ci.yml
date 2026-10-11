@@ -1,0 +1,234 @@
+# Continuous Integration Workflow
+# ================================
+# Runs on every push and pull request to main/develop branches.
+# Tests the web build and optionally builds platform-specific artifacts.
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Web Build & Test
+  # ─────────────────────────────────────────────────────────────
+  web-build:
+    name: Web Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: app-web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app-web
+        run: npm ci
+
+      - name: Copy shared assets
+        run: |
+          cp public/favicon.png public/logo-192.png public/vite.svg app-web/public/ 2>/dev/null || true
+
+      - name: Build
+        working-directory: app-web
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: app-web/dist/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Lint & Type Check (Optional)
+  # ─────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: app-web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app-web
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: app-web
+        run: npm run lint --if-present
+        continue-on-error: true
+
+      - name: Run TypeScript check
+        working-directory: app-web
+        run: npm run typecheck --if-present
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────────────────
+  # macOS Build (on tags only)
+  # ─────────────────────────────────────────────────────────────
+  macos-build:
+    name: macOS Build
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: app-macos/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app-macos
+        run: npm ci
+
+      - name: Copy shared assets
+        run: |
+          cp public/favicon.png public/logo-192.png public/vite.svg app-macos/public/ 2>/dev/null || true
+
+      - name: Build app
+        working-directory: app-macos
+        run: npm run build
+
+      - name: Package (ZIP)
+        working-directory: app-macos
+        run: npx electron-builder --mac zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: app-macos/release/*.zip
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────
+  # Windows Build (on tags only)
+  # ─────────────────────────────────────────────────────────────
+  windows-build:
+    name: Windows Build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: app-windows/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app-windows
+        run: npm ci
+
+      - name: Copy shared assets
+        run: |
+          Copy-Item public/favicon.png, public/logo-192.png, public/vite.svg app-windows/public/ -ErrorAction SilentlyContinue
+
+      - name: Build app
+        working-directory: app-windows
+        run: npm run build
+
+      - name: Package (NSIS + ZIP)
+        working-directory: app-windows
+        run: npx electron-builder --win nsis zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            app-windows/release/*.exe
+            app-windows/release/*.zip
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────
+  # Android Build (on tags only)
+  # ─────────────────────────────────────────────────────────────
+  android-build:
+    name: Android Build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: app-android/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: app-android
+        run: npm ci
+
+      - name: Copy shared assets
+        run: |
+          cp public/favicon.png public/logo-192.png public/vite.svg app-android/public/ 2>/dev/null || true
+
+      - name: Build web assets
+        working-directory: app-android
+        run: npm run build
+
+      - name: Add Capacitor platform
+        working-directory: app-android
+        run: npx cap add android || true
+
+      - name: Sync Capacitor
+        working-directory: app-android
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: app-android/android
+        run: ./gradlew :app:assembleDebug
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: app-android/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30

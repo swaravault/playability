@@ -1,0 +1,31 @@
+/* iOS Platform CSS Overrides */
+@import "../../src/index.css";
+
+/* iOS Safe Area Insets */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent iOS rubber-band scrolling on body */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS keyboard adjustment */
+.keyboard-visible {
+  padding-bottom: var(--keyboard-height, 0px);
+}
+
+/* Disable iOS text selection highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS status bar spacing */
+.ios-status-bar-spacer {
+  height: env(safe-area-inset-top);
+}

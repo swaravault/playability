@@ -1,0 +1,78 @@
+{
+  "$schema": "./app.config.schema.json",
+  "app": {
+    "name": "PlayAbility",
+    "displayName": "PlayAbility",
+    "description": "Ability to play and learn",
+    "version": "1.10.11",
+    "author": "Swara Abheri",
+    "license": "MIT",
+    "homepage": "https://github.com/username/playability",
+    "repository": "https://github.com/username/playability"
+  },
+  "developer": {
+    "name": "Swara Abheri",
+    "email": "swara.vault@gmail.com",
+    "message": "Comments and suggestions are welcome!"
+  },
+  "identifiers": {
+    "bundleId": "com.playability",
+    "androidPackage": "com.playability",
+    "iosBundle": "com.playability",
+    "macBundle": "com.playability",
+    "windowsAppId": "com.playability"
+  },
+  "platforms": {
+    "web": {
+      "enabled": true,
+      "directory": "app-web",
+      "port": 5173
+    },
+    "android": {
+      "enabled": true,
+      "directory": "app-android",
+      "minSdk": 22,
+      "targetSdk": 34
+    },
+    "ios": {
+      "enabled": true,
+      "directory": "app-ios",
+      "deploymentTarget": "14.0"
+    },
+    "macos": {
+      "enabled": true,
+      "directory": "app-macos",
+      "category": "public.app-category.productivity"
+    },
+    "windows": {
+      "enabled": true,
+      "directory": "app-windows"
+    }
+  },
+  "build": {
+    "sharedAssets": [
+      "public/favicon.png",
+      "public/logo-192.png",
+      "public/vite.svg"
+    ],
+    "javaHome": {
+      "macos": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
+      "linux": "/usr/lib/jvm/java-17-openjdk",
+      "windows": "C:\\Program Files\\Android\\Android Studio\\jbr"
+    }
+  },
+  "environment": {
+    "variables": [
+      "VITE_GOOGLE_CLIENT_ID",
+      "VITE_GEMINI_API_KEY",
+      "VITE_API_BASE_URL"
+    ]
+  },
+  "features": {
+    "googleAuth": false,
+    "googleDrive": false,
+    "aiAssistant": false,
+    "localStorage": true,
+    "cloudSync": false
+  }
+}

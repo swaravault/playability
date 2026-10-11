@@ -1,0 +1,25 @@
+/* Windows Platform CSS Overrides */
+@import "../../src/index.css";
+
+/* Windows-specific title bar styling (if using custom title bar) */
+.windows-title-bar {
+  -webkit-app-region: drag;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.windows-title-bar button {
+  -webkit-app-region: no-drag;
+}
+
+/* Disable text selection on non-interactive elements for native feel */
+body {
+  user-select: none;
+}
+
+/* Re-enable text selection for content areas */
+input, textarea, [contenteditable], .selectable {
+  user-select: text;
+}
