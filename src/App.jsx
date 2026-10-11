@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
+import About from './pages/About';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -29,6 +30,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/about" element={<About />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

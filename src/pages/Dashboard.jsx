@@ -23,6 +23,12 @@ function Dashboard() {
               {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
             </button>
             <Link
+              to="/about"
+              className="px-4 py-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600 transition-colors"
+            >
+              About
+            </Link>
+            <Link
               to="/settings"
               className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
             >
