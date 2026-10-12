@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui';
 
 const About = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#FFFDF0] p-6 md:p-12 flex flex-col items-center">
       {/* 
@@ -86,6 +88,7 @@ const About = () => {
           </Button>
           <Button 
             className="bg-purple-600 hover:bg-purple-700 text-white font-black py-8 px-12 rounded-[30px] text-2xl shadow-xl transform active:scale-95 transition-all animate-pulse"
+            onClick={() => navigate('/games')}
           >
             LET'S PLAY! 🚀
           </Button>

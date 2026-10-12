@@ -3,6 +3,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import About from './pages/About';
+import Games from './pages/Games';
+import PicoWord from './components/features/games/PicoWord';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -31,6 +33,8 @@ function App() {
             <Route path="/" element={<Navigate to="/about" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/about" element={<About />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/games/picoword" element={<PicoWord />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
