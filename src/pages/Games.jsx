@@ -14,6 +14,14 @@ const Games = () => {
       color: 'bg-purple-100 border-purple-200 text-purple-700',
       path: '/games/picoword'
     },
+    {
+      id: 'lingsix',
+      title: 'Ling Six Test',
+      description: 'Listen and identify the six Ling sounds!',
+      icon: '👂',
+      color: 'bg-blue-100 border-blue-200 text-blue-700',
+      path: '/games/ling-six'
+    },
     // Future games can be added here
   ];
 
