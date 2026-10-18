@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gemini-imagen": {
+      "command": "node",
+      "args": ["d:/projects/mcp-gemini-imagen/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "AIzaSyBS-BGypMMGryOpkbU3jQx01jHz5QwAT1o"
+      }
+    }
+  }
+}

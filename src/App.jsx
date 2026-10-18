@@ -6,6 +6,7 @@ import About from './pages/About';
 import Games from './pages/Games';
 import PicoWord from './components/features/games/PicoWord';
 import LingSixGame from './components/features/games/LingSixGame';
+import GalaxyRescue from './components/features/games/GalaxyRescue';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -37,6 +38,7 @@ function App() {
             <Route path="/games" element={<Games />} />
             <Route path="/games/picoword" element={<PicoWord />} />
             <Route path="/games/ling-six" element={<LingSixGame />} />
+            <Route path="/games/galaxy-rescue" element={<GalaxyRescue />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

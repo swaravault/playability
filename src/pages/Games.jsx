@@ -22,6 +22,14 @@ const Games = () => {
       color: 'bg-blue-100 border-blue-200 text-blue-700',
       path: '/games/ling-six'
     },
+    {
+      id: 'galaxyrescue',
+      title: 'Galaxy Rescue',
+      description: 'Rescue friends in space by listening carefully!',
+      icon: '🚀',
+      color: 'bg-indigo-100 border-indigo-200 text-indigo-700',
+      path: '/games/galaxy-rescue'
+    },
     // Future games can be added here
   ];
 
