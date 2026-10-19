@@ -21,7 +21,7 @@ export default defineConfig({
     },
     // CRITICAL: Dedupe React and stateful libraries to prevent duplicate instances
     // This is essential when importing from ../src/ which has its own node_modules
-    dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+    dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand', 'framer-motion'],
   },
   // Inject app config as environment variables (read from app.config.json)
   // Version is auto-generated from today's date: (YEAR-2025).(MONTH).(DAY)

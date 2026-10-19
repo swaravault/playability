@@ -1,7 +1,7 @@
 {
   "name": "playability-windows",
   "private": true,
-  "version": "1.10.18",
+  "version": "1.10.19",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "package:portable": "npm run build && electron-builder --win portable"
   },
   "dependencies": {
+    "framer-motion": "^11.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",

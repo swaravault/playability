@@ -54,7 +54,7 @@ export default defineConfig({
       '@electron': path.resolve(__dirname, 'src'),
     },
     // CRITICAL: Dedupe React and stateful libraries
-    dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+    dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand', 'framer-motion'],
   },
   // Inject app config as environment variables (read from app.config.json)
   // Version is auto-generated from today's date: (YEAR-2025).(MONTH).(DAY)

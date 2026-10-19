@@ -30,6 +30,14 @@ const Games = () => {
       color: 'bg-indigo-100 border-indigo-200 text-indigo-700',
       path: '/games/galaxy-rescue'
     },
+    {
+      id: 'letterdetective',
+      title: 'Letter Detective',
+      description: 'Catch the correct letter and become a hero!',
+      icon: '🔍',
+      color: 'bg-blue-50 border-blue-100 text-blue-600',
+      path: '/games/letter-detective'
+    },
     // Future games can be added here
   ];
 

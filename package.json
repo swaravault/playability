@@ -1,7 +1,7 @@
 {
   "name": "myapp",
   "private": true,
-  "version": "1.10.18",
+  "version": "1.10.19",
   "type": "module",
   "description": "A cross-platform application built with React, Vite, and native wrappers",
   "author": "Your Name",
@@ -27,6 +27,7 @@
     "format:check": "prettier --check \"src/**/*.{js,jsx,json,css}\""
   },
   "dependencies": {
+    "framer-motion": "^11.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",
