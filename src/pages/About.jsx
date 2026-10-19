@@ -1,119 +1,253 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
+import { motion } from 'framer-motion';
+import heroImage from '../assets/images/hero-kids.png';
+
+const Sidebar = () => {
+  const navItems = [
+    { name: 'Home', icon: '🏠', path: '/about', active: true },
+    { name: 'Games', icon: '🎮', path: '/games' },
+    // Removed Stories tab as requested
+    { name: 'Progress', icon: '⭐', path: '#' },
+    { name: 'Settings', icon: '⚙️', path: '/settings' },
+  ];
+
+  return (
+    <div className="w-72 bg-[#F8F9FF] dark:bg-[#0F172A] h-screen fixed left-0 top-0 flex flex-col p-8 border-r border-blue-50/50 dark:border-slate-800 transition-colors duration-300">
+      <div className="flex items-center gap-3 mb-12">
+        <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-white text-2xl shadow-sm shadow-yellow-200">
+          🖐️
+        </div>
+        <h1 className="text-2xl font-black tracking-tight flex">
+          <span className="text-[#3B42C4] dark:text-[#818CF8]">Play</span>
+          <span className="text-[#F43F5E]">Ability</span>
+        </h1>
+      </div>
+
+      <nav className="flex-1 space-y-3">
+        {navItems.map((item) => (
+          <Link
+            key={item.name}
+            to={item.path}
+            className={`flex items-center gap-4 px-5 py-4 rounded-[24px] font-bold transition-all ${
+              item.active 
+                ? 'bg-white dark:bg-[#1E293B] text-[#5D5FEF] dark:text-[#A5B4FC] shadow-[0_8px_20px_rgba(0,0,0,0.04)]' 
+                : 'text-gray-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-gray-600 dark:hover:text-slate-300'
+            }`}
+          >
+            <span className="text-2xl">{item.icon}</span>
+            <span className="text-lg tracking-tight">{item.name}</span>
+          </Link>
+        ))}
+      </nav>
+
+      <div className="mt-auto flex flex-col items-center p-6 bg-white/40 dark:bg-slate-800/40 rounded-[35px] border border-blue-50 dark:border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50/20 to-transparent dark:from-indigo-900/20 -z-10"></div>
+        <div className="w-16 h-16 mb-2 relative">
+           <span className="text-5xl">⭐</span>
+           <div className="absolute -top-1 -right-1 text-xl animate-pulse">✨</div>
+        </div>
+        <p className="text-sm font-black text-blue-600 dark:text-indigo-400 text-center leading-tight">
+          steps make<br/><span className="text-blue-800 dark:text-indigo-200">big progress!</span>
+        </p>
+        <div className="mt-3 flex gap-1">
+           <div className="text-blue-400 text-xl">💙</div>
+           <div className="text-blue-300 text-xl">💙</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SkillCard = ({ title, subtitle, description, icon, color, darkColor, bgColor, darkBg, arrowBg }) => (
+  <div className={`${bgColor} ${darkBg} p-8 rounded-[40px] border border-transparent hover:border-white dark:hover:border-slate-700 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col gap-4 relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-500`}>
+    <div className="flex items-center gap-5">
+      <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-3xl shadow-sm flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
+        {icon}
+      </div>
+      <div>
+        <h3 className={`text-2xl font-black ${color} ${darkColor} tracking-tight`}>{title}</h3>
+        <p className={`text-base font-bold ${color} ${darkColor} opacity-70 uppercase tracking-widest`}>{subtitle}</p>
+      </div>
+    </div>
+    <p className="text-gray-500 dark:text-slate-400 font-bold leading-relaxed text-base pr-12">
+      {description}
+    </p>
+    <div className={`absolute bottom-8 right-8 w-12 h-12 ${arrowBg} rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg transform group-hover:scale-110 transition-all duration-300`}>
+      <span className="text-2xl font-bold">→</span>
+    </div>
+  </div>
+);
 
 const About = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-[#FFFDF0] p-6 md:p-12 flex flex-col items-center">
-      {/* 
-        ACCESSIBILITY NOTES:
-        - Background #FFFDF0 (Cream) reduces visual stress for Dyslexia.
-        - Text is left-aligned for easier tracking.
-        - Tracking-wide (letter spacing) and leading-relaxed (line height) for readability.
-        - Visual-first communication using large icons and emojis.
-      */}
+    <div className="min-h-screen bg-white dark:bg-[#020617] flex font-sans selection:bg-purple-100 dark:selection:bg-indigo-900 selection:text-purple-900 dark:selection:text-indigo-100 transition-colors duration-300">
+      <Sidebar />
       
-      <div className="max-w-4xl w-full bg-white rounded-[40px] p-8 md:p-16 shadow-xl border-b-8 border-blue-200">
+      <main className="ml-72 flex-1 p-10 md:p-16 relative overflow-hidden">
+        {/* Background Decorations */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#F5F7FF] dark:bg-[#1E293B]/30 rounded-full blur-[120px] -z-10 -mr-48 -mt-48 opacity-60"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#FFF5F7] dark:bg-indigo-900/10 rounded-full blur-[100px] -z-10 -ml-24 -mb-24 opacity-60"></div>
         
-        {/* Visual Header */}
-        <div className="flex flex-col md:flex-row items-center gap-8 mb-12 border-b-4 border-dashed border-yellow-200 pb-8 text-left">
-          <div className="text-8xl animate-bounce">👋</div>
-          <div>
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-2">
-              <span className="text-[#FF5F5F]">P</span>
-              <span className="text-[#FFB84C]">l</span>
-              <span className="text-[#4D96FF]">a</span>
-              <span className="text-[#6BCB77]">y</span>
-              <span className="text-[#9333EA]">A</span>
-              <span className="text-[#DB2777]">b</span>
-              <span className="text-[#EA580C]">i</span>
-              <span className="text-[#2563EB]">l</span>
-              <span className="text-[#059669]">i</span>
-              <span className="text-[#7C3AED]">t</span>
-              <span className="text-[#BE123C]">y</span>
-            </h1>
-            <p className="text-2xl md:text-3xl font-bold text-gray-600 tracking-wide mt-4">
-              Fun, visual games designed for dyslexic and hearing-impaired kids.
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="flex flex-col lg:flex-row items-center gap-16 mb-24 relative">
+            <div className="flex-1 text-left z-10">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="inline-block bg-[#F3F0FF] dark:bg-indigo-950 text-[#7C3AED] dark:text-indigo-400 px-8 py-2.5 rounded-full font-black text-xl mb-8 shadow-sm"
+              >
+                About
+              </motion.div>
+              
+              <h1 className="text-7xl md:text-[100px] font-black tracking-tighter mb-8 leading-[0.85] drop-shadow-sm">
+                <span className="text-[#FF5F5F]">P</span>
+                <span className="text-[#FFB84C]">l</span>
+                <span className="text-[#4D96FF]">a</span>
+                <span className="text-[#6BCB77]">y</span>
+                <span className="text-[#9333EA]">A</span>
+                <span className="text-[#DB2777]">b</span>
+                <span className="text-[#EA580C]">i</span>
+                <span className="text-[#2563EB]">l</span>
+                <span className="text-[#059669]">i</span>
+                <span className="text-[#7C3AED]">t</span>
+                <span className="text-[#BE123C]">y</span>
+              </h1>
+
+              <p className="text-2xl md:text-3xl font-black text-[#1E293B] dark:text-slate-100 mb-6 leading-tight max-w-xl">
+                Fun, visual games designed to build confidence, skills and brighter tomorrows.
+              </p>
+              
+              <p className="text-xl text-[#64748B] dark:text-slate-400 font-bold max-w-lg mb-10 leading-relaxed opacity-80">
+                PlayAbility is a safe, supportive and inclusive platform where children can explore, learn and grow through interactive games, stories and activities.
+              </p>
+
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#5D5FEF] hover:bg-[#4F46E5] text-white font-black py-5 px-14 rounded-full text-2xl shadow-[0_15px_35px_rgba(93,95,239,0.3)] flex items-center gap-4 transition-all group cursor-pointer"
+                onClick={() => navigate('/games')}
+              >
+                <span className="text-3xl">🎮</span> Let's Play <span className="group-hover:translate-x-2 transition-transform">→</span>
+              </motion.button>
+            </div>
+
+            <div className="flex-1 relative">
+              {/* Generated Illustration blended into the page */}
+              <div className="relative w-full aspect-square max-lg:max-w-md mx-auto lg:scale-125 flex items-center justify-center">
+                {/* Circular soft background for blending */}
+                <div className="absolute w-[120%] h-[120%] bg-gradient-to-br from-blue-100/40 via-purple-50/30 to-white/0 dark:from-indigo-900/20 dark:via-slate-900/10 dark:to-transparent rounded-full blur-3xl -z-10 animate-pulse"></div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="relative w-full h-full p-4"
+                >
+                  {/* The image with a circular crop and soft edges */}
+                  <div className="w-full h-full rounded-[60px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-8 border-white/50 dark:border-slate-800/50 relative transition-colors duration-300">
+                     <img 
+                        src={heroImage} 
+                        alt="Children learning together" 
+                        className="w-full h-full object-cover scale-110 hover:scale-105 transition-transform duration-1000"
+                      />
+                      {/* Vignette effect to blend edges */}
+                      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(255,255,255,0.1)] dark:shadow-[inset_0_0_100px_rgba(0,0,0,0.3)] transition-shadow duration-300"></div>
+                  </div>
+
+                  {/* Decorative labels floating around the image */}
+                  <div className="absolute -top-4 -right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-purple-50 dark:border-indigo-900/30 font-black text-[#7C3AED] dark:text-indigo-300 rotate-12 z-20 transition-colors duration-300">
+                    Learn
+                  </div>
+                  <div className="absolute top-1/2 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-blue-50 dark:border-slate-700/30 font-black text-[#3B82F6] dark:text-blue-400 -rotate-6 z-20 transition-colors duration-300">
+                    Play
+                  </div>
+                  <div className="absolute -bottom-4 right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-pink-50 dark:border-rose-900/30 font-black text-[#EC4899] dark:text-rose-400 rotate-3 z-20 transition-colors duration-300">
+                    Grow
+                  </div>
+                </motion.div>
+
+                {/* Extra floating elements for depth */}
+                <div className="absolute top-0 left-0 text-5xl animate-float opacity-80" style={{ animationDelay: '1s' }}>✨</div>
+                <div className="absolute bottom-10 left-0 text-4xl animate-bounce opacity-60">🎈</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Skills Section */}
+          <div className="mb-20">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-yellow-100">⭐</div>
+              <h2 className="text-4xl font-black text-[#1E293B] dark:text-slate-100 tracking-tight">Designed to support key skills</h2>
+            </div>
+            <p className="text-xl text-[#64748B] dark:text-slate-400 font-bold mb-12 opacity-80">
+              Our games and activities help children develop important skills through fun, hands-on learning.
             </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <SkillCard 
+                title="EXPRESS"
+                subtitle="Visual Learning"
+                description="Games designed around pictures, symbols and signs — not long texts or audio cues — so every child can learn visually."
+                icon="🎨"
+                color="text-[#7C3AED]"
+                darkColor="dark:text-indigo-300"
+                bgColor="bg-[#F8F7FF]"
+                darkBg="dark:bg-[#1E1B4B]/40"
+                arrowBg="bg-[#7C3AED]"
+              />
+              <SkillCard 
+                title="EMPOWER"
+                subtitle="Dyslexia-Friendly"
+                description="Features clean fonts, clear contrast, and picture-word matching like Picoword to help build reading confidence without stress."
+                icon="🎮"
+                color="text-[#059669]"
+                darkColor="dark:text-emerald-300"
+                bgColor="bg-[#F0FDF4]"
+                darkBg="dark:bg-[#064E3B]/20"
+                arrowBg="bg-[#059669]"
+              />
+              <SkillCard 
+                title="CONNECT"
+                subtitle="Sound & Communication"
+                description="It is learn through sounds and fun games. We combine visual cues with helpful audio to make connecting with words a blast!"
+                icon="🔊"
+                color="text-[#E11D48]"
+                darkColor="dark:text-rose-300"
+                bgColor="bg-[#FFF1F2]"
+                darkBg="dark:bg-[#881337]/20"
+                arrowBg="bg-[#E11D48]"
+              />
+              <SkillCard 
+                title="GROW"
+                subtitle="Confidence & Progress"
+                description="Build vocabulary, memory, and word recognition step-by-step through fun, interactive matching puzzles."
+                icon="🌱"
+                color="text-[#D97706]"
+                darkColor="dark:text-amber-300"
+                bgColor="bg-[#FFFBEB]"
+                darkBg="dark:bg-[#78350F]/20"
+                arrowBg="bg-[#D97706]"
+              />
+            </div>
           </div>
         </div>
+      </main>
 
-        {/* Feature Cards - Grid for Visual Chunking */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          
-          <div className="bg-[#F0F7FF] p-8 rounded-3xl border-4 border-blue-200 flex flex-col gap-4 transform hover:scale-105 transition-all shadow-lg">
-            <div className="flex justify-between items-center">
-              <div className="text-5xl">🎨</div>
-              <span className="bg-blue-200 text-blue-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-widest">Visual Learning</span>
-            </div>
-            <h3 className="text-3xl font-black text-blue-700 uppercase tracking-widest">EXPRESS</h3>
-            <p className="text-xl font-medium text-gray-700 leading-relaxed text-left">
-              Games designed around pictures, symbols, and signs—not long texts or audio cues—so every child can learn visually.
-            </p>
-          </div>
-
-          <div className="bg-[#F2FFE9] p-8 rounded-3xl border-4 border-green-200 flex flex-col gap-4 transform hover:scale-105 transition-all shadow-lg">
-            <div className="flex justify-between items-center">
-              <div className="text-5xl">🎮</div>
-              <span className="bg-green-200 text-green-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-widest">Dyslexia-Friendly</span>
-            </div>
-            <h3 className="text-3xl font-black text-green-700 uppercase tracking-widest">EMPOWER</h3>
-            <p className="text-xl font-medium text-gray-700 leading-relaxed text-left">
-              Features clean fonts, clear contrast, and picture-word matching like Picoword to help build reading confidence without stress.
-            </p>
-          </div>
-
-          <div className="bg-[#FFF0F0] p-8 rounded-3xl border-4 border-red-200 flex flex-col gap-4 transform hover:scale-105 transition-all shadow-lg">
-            <div className="flex justify-between items-center">
-              <div className="text-5xl">🤟</div>
-              <span className="bg-red-200 text-red-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-widest">Connect Through Sound</span>
-            </div>
-            <h3 className="text-3xl font-black text-red-700 uppercase tracking-widest">CONNECT</h3>
-            <p className="text-xl font-medium text-gray-700 leading-relaxed text-left">
-              It is learn through sounds and fun games. We combine visual cues with helpful audio to make connecting with words a blast!
-            </p>
-          </div>
-
-          <div className="bg-[#FEF9E7] p-8 rounded-3xl border-4 border-yellow-200 flex flex-col gap-4 transform hover:scale-105 transition-all shadow-lg">
-            <div className="flex justify-between items-center">
-              <div className="text-5xl">🚀</div>
-              <span className="bg-yellow-200 text-yellow-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-widest">Learn Through Play</span>
-            </div>
-            <h3 className="text-3xl font-black text-yellow-700 uppercase tracking-widest">GROW</h3>
-            <p className="text-xl font-medium text-gray-700 leading-relaxed text-left">
-              Kids build vocabulary, memory, and word recognition step-by-step through fun, interactive matching puzzles.
-            </p>
-          </div>
-
-        </div>
-
-        {/* Action Zone */}
-        <div className="flex flex-col md:flex-row gap-6 justify-center mt-12 pt-8 border-t-4 border-gray-100">
-          <Button 
-            className="bg-gray-800 hover:bg-gray-900 text-white font-black py-8 px-12 rounded-[30px] text-2xl shadow-xl transform active:scale-95 transition-all"
-            onClick={() => window.history.back()}
-          >
-            ⬅️ GO BACK
-          </Button>
-          <Button 
-            className="bg-purple-600 hover:bg-purple-700 text-white font-black py-8 px-12 rounded-[30px] text-3xl shadow-xl transform active:scale-95 transition-all animate-pulse border-b-8 border-purple-800"
-            onClick={() => navigate('/games')}
-          >
-            LET'S PLAY! 🚀
-          </Button>
-        </div>
-
-      </div>
-
-      {/* Visual Support Footer */}
-      <div className="mt-12 flex flex-wrap justify-center gap-10 opacity-80 grayscale-[0.1]">
-        <span className="text-6xl animate-pulse">🌈</span>
-        <span className="text-6xl">🎈</span>
-        <span className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}>🦄</span>
-        <span className="text-6xl">🍭</span>
-        <span className="text-6xl animate-pulse" style={{ animationDelay: '0.4s' }}>🧸</span>
-      </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+      `}} />
     </div>
   );
 };

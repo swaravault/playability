@@ -25,13 +25,20 @@ export function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
-    const root = document.documentElement;
+    const root = window.document.documentElement;
+    
     if (theme === 'dark') {
       root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+      root.style.colorScheme = 'dark';
     } else {
       root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+      root.style.colorScheme = 'light';
     }
+    
     localStorage.setItem('theme', theme);
+    console.log('Theme changed to:', theme);
   }, [theme]);
 
   const toggleTheme = () => {

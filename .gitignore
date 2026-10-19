@@ -76,5 +76,8 @@ __pycache__/
 ehthumbs.db
 Thumbs.db
 
+# Roo configuration
+.roo/
+
 # Optional: Local configuration overrides
 *.local

@@ -6,6 +6,11 @@
 
 @import "tailwindcss";
 
+@theme {
+  /* Override the default dark variant to use the .dark class OR data-theme="dark" attribute */
+  --variant-dark: :where(.dark, [data-theme="dark"], .dark *, [data-theme="dark"] *);
+}
+
 /* Theme Variables */
 :root {
   --color-primary: #3b82f6;
@@ -56,11 +61,13 @@ body {
   background: #9ca3af;
 }
 
-.dark ::-webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb,
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: #4b5563;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
 
