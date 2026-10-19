@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button } from '@/components/ui';
+import { Button, Modal } from '@/components/ui';
 import speechService from '@/utils/speech';
 import { useNavigate } from 'react-router-dom';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -84,7 +84,10 @@ const STORAGE_KEYS = {
   MISSION: 'galaxy_rescue_mission',
   STARS: 'galaxy_rescue_stars',
   STATS: 'galaxy_rescue_stats',
-  GAME_STATE: 'galaxy_rescue_state'
+  GAME_STATE: 'galaxy_rescue_state',
+  MAX_UNLOCKED: 'galaxy_rescue_max_unlocked',
+  SPEECH_RATE: 'galaxy_rescue_speech_rate',
+  SPEECH_VOICE: 'galaxy_rescue_speech_voice'
 };
 
 const TransparentImage = ({ src, alt, className, style, ...props }) => {
@@ -145,11 +148,35 @@ const GalaxyRescue = () => {
     firstAttemptSuccess: 0,
     totalAttempts: 0
   });
+  const [maxUnlockedLevel, setMaxUnlockedLevel] = useLocalStorage(STORAGE_KEYS.MAX_UNLOCKED, 1);
+  const [speechRate, setSpeechRate] = useLocalStorage(STORAGE_KEYS.SPEECH_RATE, 0.85);
+  const [speechVoice, setSpeechVoice] = useLocalStorage(STORAGE_KEYS.SPEECH_VOICE, null);
+
+  // Update max unlocked level
+  useEffect(() => {
+    if (level > maxUnlockedLevel) {
+      setMaxUnlockedLevel(level);
+    }
+  }, [level, maxUnlockedLevel, setMaxUnlockedLevel]);
 
   // Session state
   const [feedback, setFeedback] = useState(null); // 'correct', 'wrong'
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = speechService.getAvailableVoices();
+      setAvailableVoices(voices);
+    };
+    loadVoices();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
   
   // Immersive floating positions
   const [objectPositions, setObjectPositions] = useState([]);
@@ -241,9 +268,11 @@ const GalaxyRescue = () => {
     if (!currentMission) return;
     setIsSpeaking(true);
     speechService.speak(currentMission.text, {
+      rate: speechRate,
+      voice: speechVoice,
       onEnd: () => setIsSpeaking(false)
     });
-  }, [currentMission]);
+  }, [currentMission, speechRate, speechVoice]);
 
   useEffect(() => {
     if (gameState === 'playing') {
@@ -275,12 +304,12 @@ const GalaxyRescue = () => {
       }
       
       // Celebrate
-      speechService.speak("Amazing! You found it!");
+      speechService.speak("Amazing! You found it!", { rate: speechRate, voice: speechVoice });
     } else {
       setFeedback('wrong');
       setAttempts(prev => prev + 1);
       // Explicitly tell "TRY AGAIN"
-      speechService.speak("TRY AGAIN");
+      speechService.speak("TRY AGAIN", { rate: speechRate, voice: speechVoice });
       setTimeout(() => setFeedback(null), 1500);
     }
   };
@@ -311,6 +340,7 @@ const GalaxyRescue = () => {
 
   const resetGame = () => {
     setLevel(1);
+    setMaxUnlockedLevel(1);
     setMissionIndex(0);
     setStars(0);
     setStats({
@@ -460,11 +490,25 @@ const GalaxyRescue = () => {
           <div className="bg-yellow-400 text-yellow-900 px-6 py-2 rounded-full font-black text-xl shadow-lg flex items-center gap-2">
             ⭐ {stars}
           </div>
+          {gameState !== 'intro' && (
+            <Button 
+              onClick={() => setGameState('intro')}
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-2xl"
+            >
+              CHANGE PLANET
+            </Button>
+          )}
+          <Button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-2xl"
+          >
+            ⚙️
+          </Button>
           <Button 
             onClick={() => navigate('/games')}
             className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-2xl"
           >
-            GO BACK
+            EXIT
           </Button>
         </div>
       </header>
@@ -488,6 +532,34 @@ const GalaxyRescue = () => {
               >
                 {level > 1 || missionIndex > 0 ? 'RESUME MISSION 🚀' : 'START MISSION 🚀'}
               </Button>
+              
+              {maxUnlockedLevel > 1 && (
+                <div className="bg-white/5 p-6 rounded-[30px] border border-white/10">
+                  <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-4">Jump to Unlocked Planet</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[1, 2, 3].map((l) => (
+                      <button
+                        key={l}
+                        disabled={l > maxUnlockedLevel}
+                        onClick={() => {
+                          setLevel(l);
+                          setMissionIndex(0);
+                          setGameState('playing');
+                        }}
+                        className={`
+                          flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all
+                          ${level === l ? 'bg-indigo-600 border-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}
+                          ${l > maxUnlockedLevel ? 'opacity-20 grayscale cursor-not-allowed' : 'cursor-pointer'}
+                        `}
+                      >
+                        <img src={PLANETS[l].image} alt="" className="w-10 h-10 object-contain" />
+                        <span className="text-[8px] font-black uppercase tracking-tighter">{PLANETS[l].name.split(' ')[0]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {(level > 1 || missionIndex > 0 || stars > 0) && (
                 <Button 
                   onClick={resetGame}
@@ -654,6 +726,68 @@ const GalaxyRescue = () => {
           </div>
         </footer>
       )}
+
+      {/* Settings Modal */}
+      <Modal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title="GAME SETTINGS"
+      >
+        <div className="p-6 flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <label className="text-lg font-bold text-white/70 uppercase tracking-widest">Audio Speed</label>
+              <span className="bg-indigo-600 px-4 py-1 rounded-full text-sm font-black">{speechRate.toFixed(2)}x</span>
+            </div>
+            <input 
+              type="range" 
+              min="0.5" 
+              max="1.5" 
+              step="0.05" 
+              value={speechRate}
+              onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+              className="w-full h-3 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <div className="flex justify-between text-[10px] font-bold opacity-40 uppercase">
+              <span>Slower</span>
+              <span>Normal</span>
+              <span>Faster</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <label className="text-lg font-bold text-white/70 uppercase tracking-widest">Voice Accent</label>
+            <select 
+              value={speechVoice || ''}
+              onChange={(e) => setSpeechVoice(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-bold outline-none focus:border-indigo-500 appearance-none"
+            >
+              <option value="" className="bg-slate-900">Default (Indian English)</option>
+              {availableVoices.map((v) => (
+                <option key={v.voiceURI} value={v.voiceURI} className="bg-slate-900">
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button 
+            onClick={() => {
+              speechService.speak("Testing audio speed and voice", { rate: speechRate, voice: speechVoice });
+            }}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/10 py-4 rounded-2xl flex items-center justify-center gap-2"
+          >
+            🔊 TEST AUDIO
+          </Button>
+
+          <Button 
+            onClick={() => setIsSettingsOpen(false)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white py-6 rounded-3xl font-black text-xl shadow-xl"
+          >
+            SAVE & CLOSE
+          </Button>
+        </div>
+      </Modal>
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes pulse {

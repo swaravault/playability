@@ -20,20 +20,25 @@ class SpeechService {
   }
 
   loadVoices() {
-    const voices = this.synth.getVoices();
-    // Prefer Neural or Premium voices if available
-    // Common high-quality voices: Google US English, Apple Samantha, Microsoft Aria
-    this.voice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) ||
-                 voices.find(v => v.name.includes('Samantha') && v.lang.startsWith('en')) ||
-                 voices.find(v => v.name.includes('Aria') && v.lang.startsWith('en')) ||
-                 voices.find(v => v.lang.startsWith('en')) ||
-                 voices[0];
+    this.voices = this.synth.getVoices();
+    // Prioritize English (India) then other high-quality English voices
+    this.voice = this.voices.find(v => v.lang === 'en-IN') ||
+                 this.voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) ||
+                 this.voices.find(v => v.name.includes('Samantha') && v.lang.startsWith('en')) ||
+                 this.voices.find(v => v.name.includes('Aria') && v.lang.startsWith('en')) ||
+                 this.voices.find(v => v.lang.startsWith('en')) ||
+                 this.voices[0];
+  }
+
+  getAvailableVoices() {
+    if (!this.synth) return [];
+    return this.synth.getVoices().filter(v => v.lang.startsWith('en'));
   }
 
   /**
    * Speak a phrase
    * @param {string} text - The text to speak
-   * @param {Object} options - Override options (onStart, onEnd, rate, pitch)
+   * @param {Object} options - Override options (onStart, onEnd, rate, pitch, voice)
    */
   speak(text, options = {}) {
     if (!this.synth) return;
@@ -42,7 +47,15 @@ class SpeechService {
     this.synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = this.voice;
+    
+    // Use specified voice by URI or name, fallback to default
+    if (options.voice) {
+      const selectedVoice = this.synth.getVoices().find(v => v.voiceURI === options.voice || v.name === options.voice);
+      utterance.voice = selectedVoice || this.voice;
+    } else {
+      utterance.voice = this.voice;
+    }
+
     utterance.rate = options.rate || this.rate;
     utterance.pitch = options.pitch || this.pitch;
 
