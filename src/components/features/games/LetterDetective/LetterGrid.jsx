@@ -57,7 +57,7 @@ const LetterGrid = ({
   };
 
   return (
-    <div className="w-full h-full bg-blue-50/50 rounded-[40px] border-4 border-blue-200/50 backdrop-blur-sm p-8 flex flex-wrap justify-center items-center gap-4 relative overflow-hidden">
+    <div className="w-full h-full bg-blue-50/50 dark:bg-blue-900/10 rounded-[40px] border-4 border-blue-200/50 dark:border-blue-800/30 backdrop-blur-sm p-8 flex flex-wrap justify-center items-center gap-4 relative overflow-hidden transition-colors">
       {gridLetters.map((item) => (
         <LetterItem
           key={item.id}
@@ -73,8 +73,8 @@ const LetterGrid = ({
       
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-5">
-        <div className="text-9xl font-black text-blue-900 absolute -top-10 -left-10 rotate-12">{targetLetter}</div>
-        <div className="text-9xl font-black text-blue-900 absolute -bottom-10 -right-10 -rotate-12">{distractorLetter}</div>
+        <div className="text-9xl font-black text-blue-900 dark:text-white absolute -top-10 -left-10 rotate-12">{targetLetter}</div>
+        <div className="text-9xl font-black text-blue-900 dark:text-white absolute -bottom-10 -right-10 -rotate-12">{distractorLetter}</div>
       </div>
     </div>
   );

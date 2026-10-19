@@ -67,8 +67,6 @@ const LingSixGame = () => {
     setGameState('start');
   }, []);
 
-  // Removed auto-start useEffect to respect autoplay policies
-
   const handleGuess = (soundId) => {
     if (gameState !== 'playing' || feedback === 'correct') return;
 
@@ -110,21 +108,21 @@ const LingSixGame = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F9FF] p-4 md:p-8 flex flex-col items-center overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#F0F9FF] dark:bg-[#020617] p-4 md:p-8 flex flex-col items-center overflow-x-hidden font-sans transition-colors duration-300">
       <audio ref={audioRef} />
       
-      <div className="max-w-4xl w-full bg-white rounded-[40px] shadow-2xl p-8 md:p-12 border-b-8 border-blue-200 text-left relative z-10">
+      <div className="max-w-4xl w-full bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl p-8 md:p-12 border-b-8 border-blue-200 dark:border-blue-900 text-left relative z-10 transition-colors duration-300">
         
-        <header className="flex justify-between items-center mb-8 border-b-4 border-dashed border-blue-100 pb-6">
+        <header className="flex justify-between items-center mb-8 border-b-4 border-dashed border-blue-100 dark:border-slate-800 pb-6">
           <div className="flex flex-col">
-            <h1 className="text-5xl font-black text-blue-600 tracking-tighter">Ling Six Test</h1>
-            <div className="mt-2 bg-blue-100 px-4 py-1 rounded-full inline-block">
-              <span className="text-blue-800 font-bold">Score: {score}</span>
+            <h1 className="text-5xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">Ling Six Test</h1>
+            <div className="mt-2 bg-blue-100 dark:bg-blue-900/30 px-4 py-1 rounded-full inline-block border border-blue-200 dark:border-blue-800">
+              <span className="text-blue-800 dark:text-blue-200 font-bold">Score: {score}</span>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="rounded-2xl font-bold h-14 px-6 border-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+            className="rounded-2xl font-bold h-14 px-6 border-2 border-blue-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
             onClick={() => window.history.back()}
           >
             ⬅️ GO BACK
@@ -134,8 +132,8 @@ const LingSixGame = () => {
         {gameState === 'start' ? (
           <div className="flex flex-col items-center py-12">
             <div className="text-9xl mb-8 animate-bounce">👂</div>
-            <h2 className="text-4xl font-black text-gray-800 mb-6 text-center">Ready to test your ears?</h2>
-            <p className="text-xl text-gray-600 mb-12 text-center max-w-md">
+            <h2 className="text-4xl font-black text-gray-800 dark:text-slate-100 mb-6 text-center">Ready to test your ears?</h2>
+            <p className="text-xl text-gray-600 dark:text-slate-400 mb-12 text-center max-w-md">
               We will play 6 different sounds. Listen carefully and click the matching button!
             </p>
             <Button 
@@ -148,9 +146,9 @@ const LingSixGame = () => {
         ) : gameState === 'won' ? (
           <div className="flex flex-col items-center py-12 animate-in fade-in zoom-in duration-500">
             <div className="text-9xl mb-6">🏆</div>
-            <h2 className="text-7xl font-black text-green-600 mb-4 text-center leading-none">TEST COMPLETE!</h2>
-            <p className="text-3xl font-bold text-gray-700 mb-4 text-center">Your Final Score: {score}</p>
-            <p className="text-xl text-gray-500 mb-12 text-center">Excellent listening skills!</p>
+            <h2 className="text-7xl font-black text-green-600 dark:text-green-400 mb-4 text-center leading-none">TEST COMPLETE!</h2>
+            <p className="text-3xl font-bold text-gray-700 dark:text-slate-200 mb-4 text-center">Your Final Score: {score}</p>
+            <p className="text-xl text-gray-500 dark:text-slate-400 mb-12 text-center">Excellent listening skills!</p>
             
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white font-black py-10 px-16 rounded-[40px] text-4xl shadow-2xl transform active:scale-95 transition-all animate-bounce"
@@ -169,8 +167,8 @@ const LingSixGame = () => {
         ) : (
           <>
             {/* Audio Control Area */}
-            <div className="mb-10 p-8 bg-blue-50 rounded-3xl border-2 border-blue-100 flex flex-col items-center shadow-inner">
-               <p className="text-xl font-bold text-blue-800 mb-6 uppercase tracking-wider">
+            <div className="mb-10 p-8 bg-blue-50 dark:bg-blue-900/20 rounded-3xl border-2 border-blue-100 dark:border-blue-800 flex flex-col items-center shadow-inner transition-colors">
+               <p className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-6 uppercase tracking-wider">
                  Listen carefully to the sound...
                </p>
                <Button 
@@ -179,11 +177,11 @@ const LingSixGame = () => {
                >
                  <span className="text-4xl">🔊</span>
                </Button>
-               <p className="mt-4 text-sm font-bold text-blue-400">Click to replay</p>
+               <p className="mt-4 text-sm font-bold text-blue-400 dark:text-blue-500">Click to replay</p>
                {audioError && (
                  <p className="mt-2 text-red-500 text-sm font-bold animate-pulse text-center">
                    ⚠️ Audio failed to play. <br/>
-                   Check files in: <code className="bg-red-50 px-1 rounded">public/assets/games/ling-six/</code>
+                   Check files in: <code className="bg-red-50 dark:bg-red-900/20 px-1 rounded">public/assets/games/ling-six/</code>
                  </p>
                )}
             </div>
@@ -202,7 +200,7 @@ const LingSixGame = () => {
                 </div>
               )}
               {!feedback && (
-                <div className="text-blue-400 font-black text-2xl tracking-widest uppercase opacity-70 bg-blue-50 px-8 py-2 rounded-full border border-blue-100">
+                <div className="text-blue-400 dark:text-blue-500 font-black text-2xl tracking-widest uppercase opacity-70 bg-blue-50 dark:bg-blue-900/20 px-8 py-2 rounded-full border border-blue-100 dark:border-blue-800">
                   Which sound was it?
                 </div>
               )}
@@ -235,7 +233,7 @@ const LingSixGame = () => {
                     className={`
                       h-32 text-5xl font-black rounded-[35px] transition-all shadow-xl transform tracking-widest uppercase border-b-8 text-white
                       ${isAlreadyDone 
-                        ? 'bg-gray-200 text-gray-400 border-gray-300 opacity-50 cursor-not-allowed shadow-none' 
+                        ? 'bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-600 border-gray-300 dark:border-slate-700 opacity-50 cursor-not-allowed shadow-none' 
                         : isCorrect
                           ? 'bg-green-500 border-green-700 scale-105 shadow-green-200'
                           : isCurrentWrong
@@ -250,7 +248,7 @@ const LingSixGame = () => {
               })}
             </div>
             
-            <div className="mt-8 text-center text-gray-400 font-bold uppercase tracking-widest text-sm">
+            <div className="mt-8 text-center text-gray-400 dark:text-slate-500 font-bold uppercase tracking-widest text-sm">
               Sounds tested: {6 - remainingSounds.length} / 6
             </div>
           </>

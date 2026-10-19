@@ -6,4 +6,5 @@
 @import "../../src/index.css";
 @source "../../src";
 
-/* Web-specific overrides (if any) */
+/* Force dark mode strategy */
+@variant dark (&:where(.dark, .dark *));

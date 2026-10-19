@@ -78,14 +78,14 @@ const PicoWord = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF0] p-4 md:p-8 flex flex-col items-center overflow-x-hidden">
-      <div className="max-w-4xl w-full bg-white rounded-[40px] shadow-2xl p-8 md:p-12 border-b-8 border-purple-200 text-left relative z-10">
+    <div className="min-h-screen bg-[#FFFDF0] dark:bg-[#020617] p-4 md:p-8 flex flex-col items-center overflow-x-hidden transition-colors duration-300">
+      <div className="max-w-4xl w-full bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl p-8 md:p-12 border-b-8 border-purple-200 dark:border-purple-900 text-left relative z-10 transition-colors duration-300">
         
-        <header className="flex justify-between items-center mb-8 border-b-4 border-dashed border-purple-100 pb-6">
-          <h1 className="text-5xl font-black text-purple-600 tracking-tighter">PicoWord</h1>
+        <header className="flex justify-between items-center mb-8 border-b-4 border-dashed border-purple-100 dark:border-slate-800 pb-6">
+          <h1 className="text-5xl font-black text-purple-600 dark:text-purple-400 tracking-tighter">PicoWord</h1>
           <Button 
             variant="outline" 
-            className="rounded-2xl font-bold h-14 px-6 border-2 border-purple-200 text-purple-600 hover:bg-purple-50"
+            className="rounded-2xl font-bold h-14 px-6 border-2 border-purple-200 dark:border-slate-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 transition-colors"
             onClick={() => window.history.back()}
           >
             ⬅️ GO BACK
@@ -95,8 +95,8 @@ const PicoWord = () => {
         {gameState === 'won' ? (
           <div className="flex flex-col items-center py-12 animate-in fade-in zoom-in duration-500">
             <div className="text-9xl mb-6">🎊</div>
-            <h2 className="text-7xl font-black text-green-600 mb-4 text-center leading-none">GOOD JOB!</h2>
-            <p className="text-3xl font-bold text-gray-700 mb-12 text-center">You matched them all perfectly!</p>
+            <h2 className="text-7xl font-black text-green-600 dark:text-green-400 mb-4 text-center leading-none">GOOD JOB!</h2>
+            <p className="text-3xl font-bold text-gray-700 dark:text-slate-300 mb-12 text-center">You matched them all perfectly!</p>
             
             <Button 
               className="bg-purple-600 hover:bg-purple-700 text-white font-black py-10 px-16 rounded-[40px] text-4xl shadow-2xl transform active:scale-95 transition-all animate-bounce"
@@ -115,8 +115,8 @@ const PicoWord = () => {
         ) : (
           <>
             {/* Instruction Area */}
-            <div className="mb-10 p-6 bg-purple-100 rounded-3xl border-2 border-purple-200 shadow-inner">
-               <p className="text-2xl font-black text-purple-800 tracking-wide uppercase">
+            <div className="mb-10 p-6 bg-purple-100 dark:bg-purple-900/30 rounded-3xl border-2 border-purple-200 dark:border-purple-800 shadow-inner">
+               <p className="text-2xl font-black text-purple-800 dark:text-purple-200 tracking-wide uppercase">
                  Tap the words in the same order as the pictures! 🎨
                </p>
             </div>
@@ -128,10 +128,10 @@ const PicoWord = () => {
                 return (
                   <div 
                     key={idx} 
-                    className={`relative aspect-square rounded-[35px] border-4 transition-all duration-500 flex items-center justify-center bg-white ${
+                    className={`relative aspect-square rounded-[35px] border-4 transition-all duration-500 flex items-center justify-center bg-white dark:bg-slate-800 ${
                       isMatched 
-                        ? 'border-green-400 scale-105 shadow-xl bg-green-50' 
-                        : 'border-purple-200 shadow-lg'
+                        ? 'border-green-400 scale-105 shadow-xl bg-green-50 dark:bg-green-900/20' 
+                        : 'border-purple-200 dark:border-purple-800 shadow-lg'
                     }`}
                   >
                     <img 
@@ -171,7 +171,7 @@ const PicoWord = () => {
                 </div>
               )}
               {!feedback && (
-                <div className="text-purple-400 font-black text-2xl tracking-widest uppercase opacity-70 bg-purple-50 px-8 py-2 rounded-full border border-purple-100">
+                <div className="text-purple-400 dark:text-purple-500 font-black text-2xl tracking-widest uppercase opacity-70 bg-purple-50 dark:bg-purple-900/20 px-8 py-2 rounded-full border border-purple-100 dark:border-purple-800">
                   {selections.length === 0 ? "Start with #1" : `Now find #${selections.length + 1}`}
                 </div>
               )}
@@ -185,10 +185,10 @@ const PicoWord = () => {
 
                 // Color palette for the buttons to make it more attractive
                 const colors = [
-                  'bg-orange-500 border-orange-700 hover:bg-orange-600',
-                  'bg-blue-500 border-blue-700 hover:bg-blue-600',
-                  'bg-pink-500 border-pink-700 hover:bg-pink-600',
-                  'bg-green-500 border-green-700 hover:bg-green-600'
+                  'bg-orange-500 border-orange-700 hover:bg-orange-600 dark:border-orange-800',
+                  'bg-blue-500 border-blue-700 hover:bg-blue-600 dark:border-blue-800',
+                  'bg-pink-500 border-pink-700 hover:bg-pink-600 dark:border-pink-800',
+                  'bg-green-500 border-green-700 hover:bg-green-600 dark:border-green-800'
                 ];
                 const buttonColor = colors[idx % colors.length];
 
@@ -200,7 +200,7 @@ const PicoWord = () => {
                     className={`
                       h-28 text-4xl font-black rounded-[35px] transition-all shadow-xl transform tracking-widest uppercase border-b-8 text-white
                       ${isSelected 
-                        ? 'bg-gray-200 text-gray-400 border-gray-300 scale-95 shadow-none translate-y-1 opacity-50' 
+                        ? 'bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-600 border-gray-300 dark:border-slate-700 scale-95 shadow-none translate-y-1 opacity-50' 
                         : isCurrentWrong
                           ? 'bg-red-600 text-white animate-shake border-red-800 shadow-red-200 translate-y-1'
                           : `${buttonColor} active:translate-y-1 active:shadow-none`

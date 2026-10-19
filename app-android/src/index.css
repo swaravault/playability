@@ -6,6 +6,9 @@
 @import "../../src/index.css";
 @source "../../src";
 
+/* Force dark mode strategy */
+@variant dark (&:where(.dark, .dark *));
+
 /* Android-specific overrides */
 
 /* Safe area handling for notches and navigation bars */

@@ -61,7 +61,7 @@ const LetterItem = ({
           <motion.div
             initial={{ x: -5 }}
             animate={{ x: [5, -5, 5, -5, 0] }}
-            className="absolute inset-0 bg-red-100 rounded-3xl opacity-50 z-0"
+            className="absolute inset-0 bg-red-100 dark:bg-red-900/30 rounded-3xl opacity-50 z-0"
           />
         )}
         {(status === 'correct' || isHinted) && (
@@ -69,7 +69,7 @@ const LetterItem = ({
             initial={{ scale: 0 }}
             animate={{ scale: [1.2, 1] }}
             className={`absolute inset-0 rounded-full z-0 ${
-              status === 'correct' ? 'bg-yellow-100 shadow-[0_0_30px_rgba(253,224,71,0.6)]' : 'bg-blue-100 shadow-[0_0_30px_rgba(59,130,246,0.6)]'
+              status === 'correct' ? 'bg-yellow-100 dark:bg-yellow-900/40 shadow-[0_0_30px_rgba(253,224,71,0.6)]' : 'bg-blue-100 dark:bg-blue-900/40 shadow-[0_0_30px_rgba(59,130,246,0.6)]'
             }`}
           />
         )}
@@ -77,8 +77,8 @@ const LetterItem = ({
 
       <span className={`
         text-6xl md:text-8xl font-black transition-colors duration-300 relative z-10
-        ${status === 'correct' ? 'text-yellow-600' : isHinted ? 'text-blue-500' : 'text-blue-800'}
-        ${status === 'wrong' ? 'text-red-600' : ''}
+        ${status === 'correct' ? 'text-yellow-600 dark:text-yellow-400' : isHinted ? 'text-blue-500 dark:text-blue-300' : 'text-blue-800 dark:text-blue-200'}
+        ${status === 'wrong' ? 'text-red-600 dark:text-red-400' : ''}
         ${isRevealed ? 'opacity-100 scale-110' : 'opacity-100'}
       `}>
         {letter}

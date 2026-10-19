@@ -1,15 +1,14 @@
 /* Base Styles & Theme Variables
  * ==============================
  * This is the shared CSS file imported by all platforms.
- * Platform-specific overrides are added in each app-{platform}/src/index.css
  */
 
 @import "tailwindcss";
 
+/* Force dark mode to use .dark class strategy only */
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Use both class and attribute for maximum compatibility */
-  --variant-dark: :where(.dark, [data-theme="dark"]) &;
-  
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
   --color-secondary: #6b7280;
@@ -31,6 +30,7 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
+
 html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -62,13 +62,11 @@ body {
   background: #9ca3af;
 }
 
-.dark ::-webkit-scrollbar-thumb,
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb {
   background: #4b5563;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
 
