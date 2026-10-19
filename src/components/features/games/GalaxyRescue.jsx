@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui';
 import speechService from '@/utils/speech';
 import { useNavigate } from 'react-router-dom';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 const MISSIONS = {
   1: [
@@ -60,8 +61,14 @@ const ASSET_IMAGES = {
   alien: '/assets/games/galaxy-rescue/images/green-alien.png',
   planet: '/assets/games/galaxy-rescue/images/rainbow-planet.png',
   spaceship: '/assets/games/galaxy-rescue/images/spaceship.png',
-  station: '/assets/games/galaxy-rescue/images/galaxy-station.png'
+  station: '/assets/games/galaxy-rescue/images/galaxy-station.png',
+  asteroid: '/assets/games/galaxy-rescue/images/asteroid.png',
+  comet: '/assets/games/galaxy-rescue/images/comet.png',
+  satellite: '/assets/games/galaxy-rescue/images/satellite.png',
+  ufo: '/assets/games/galaxy-rescue/images/ufo.png'
 };
+
+const DECORATIVE_ASSETS = ['asteroid', 'comet', 'satellite', 'ufo', 'star', 'moon'];
 
 const MASCOT_IMAGE = '/assets/games/galaxy-rescue/images/mascot.png';
 const SPACE_BG = '/assets/games/galaxy-rescue/images/space-bg.png';
@@ -70,6 +77,14 @@ const PLANETS = {
   1: { name: 'Rainbow Planet', image: '/assets/games/galaxy-rescue/images/rainbow-planet.png', color: 'from-pink-500/20 to-purple-500/20' },
   2: { name: 'Crystal Planet', image: '/assets/games/galaxy-rescue/images/crystal-planet.png', color: 'from-blue-500/20 to-cyan-500/20' },
   3: { name: 'Galaxy Station', image: '/assets/games/galaxy-rescue/images/galaxy-station.png', color: 'from-indigo-500/20 to-purple-800/20' }
+};
+
+const STORAGE_KEYS = {
+  LEVEL: 'galaxy_rescue_level',
+  MISSION: 'galaxy_rescue_mission',
+  STARS: 'galaxy_rescue_stars',
+  STATS: 'galaxy_rescue_stats',
+  GAME_STATE: 'galaxy_rescue_state'
 };
 
 const TransparentImage = ({ src, alt, className, style, ...props }) => {
@@ -97,8 +112,9 @@ const TransparentImage = ({ src, alt, className, style, ...props }) => {
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // If pixel is very dark, make it transparent
-        if (r < 20 && g < 20 && b < 20) {
+        // Use a threshold to remove dark backgrounds (Gemini black might not be pure #000)
+        // Adjusting threshold to be more aggressive
+        if (r < 40 && g < 40 && b < 40) {
           data[i + 3] = 0;
         }
       }
@@ -118,22 +134,27 @@ const TransparentImage = ({ src, alt, className, style, ...props }) => {
 
 const GalaxyRescue = () => {
   const navigate = useNavigate();
-  const [gameState, setGameState] = useState('intro'); // 'intro', 'playing', 'feedback', 'planet-unlock', 'summary'
-  const [level, setLevel] = useState(1);
-  const [missionIndex, setMissionIndex] = useState(0);
-  const [stars, setStars] = useState(0);
-  const [feedback, setFeedback] = useState(null); // 'correct', 'wrong'
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [stats, setStats] = useState({
+  
+  // Persisted state
+  const [gameState, setGameState] = useLocalStorage(STORAGE_KEYS.GAME_STATE, 'intro');
+  const [level, setLevel] = useLocalStorage(STORAGE_KEYS.LEVEL, 1);
+  const [missionIndex, setMissionIndex] = useLocalStorage(STORAGE_KEYS.MISSION, 0);
+  const [stars, setStars] = useLocalStorage(STORAGE_KEYS.STARS, 0);
+  const [stats, setStats] = useLocalStorage(STORAGE_KEYS.STATS, {
     totalMissions: 0,
     firstAttemptSuccess: 0,
     totalAttempts: 0
   });
+
+  // Session state
+  const [feedback, setFeedback] = useState(null); // 'correct', 'wrong'
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   
   // Immersive floating positions
   const [objectPositions, setObjectPositions] = useState([]);
   const [destinationPositions, setDestinationPositions] = useState([]);
+  const [decorativeObjects, setDecorativeObjects] = useState([]);
 
   // Drag and Drop state for Level 3
   const [draggedItem, setDraggedItem] = useState(null);
@@ -144,43 +165,72 @@ const GalaxyRescue = () => {
   const generatePositions = useCallback(() => {
     if (!currentMission) return;
     
-    // Define safe zones (avoiding the center 30% of the screen)
-    const zones = [
-      { t: 10, l: 10, w: 30, h: 30 }, // Top Left
-      { t: 10, l: 60, w: 30, h: 30 }, // Top Right
-      { t: 60, l: 10, w: 30, h: 30 }, // Bottom Left
-      { t: 60, l: 60, w: 30, h: 30 }, // Bottom Right
-      { t: 35, l: 5, w: 20, h: 30 },  // Middle Left
-      { t: 35, l: 75, w: 20, h: 30 }, // Middle Right
-    ];
-
-    const shuffledZones = [...zones].sort(() => Math.random() - 0.5);
+    // Divide screen into a 5x5 grid (25 cells) for larger objects
+    // Each cell is 20% width and 20% height
+    // Avoid center 3x3 area (indices 6,7,8, 11,12,13, 16,17,18) for mascot
+    const forbiddenCells = [6, 7, 8, 11, 12, 13, 16, 17, 18];
+    const availableCells = Array.from({length: 25}, (_, i) => i).filter(i => !forbiddenCells.includes(i));
+    const shuffledCells = [...availableCells].sort(() => Math.random() - 0.5);
     
+    let usedCount = 0;
+
+    // 1. Mission Objects (Targets + Choices)
     const positions = currentMission.choices.map((_, i) => {
-      const zone = shuffledZones[i % shuffledZones.length];
+      const cellIndex = shuffledCells[usedCount++];
+      const row = Math.floor(cellIndex / 5);
+      const col = cellIndex % 5;
+      
       return {
-        top: `${zone.t + Math.random() * zone.h}%`,
-        left: `${zone.l + Math.random() * zone.w}%`,
-        scale: 0.7 + Math.random() * 0.8, // 0.7x to 1.5x size
+        top: `${row * 20 + 10}%`,
+        left: `${col * 20 + 10}%`,
+        scale: 1.0 + Math.random() * 0.4, 
         delay: `${Math.random() * 5}s`,
         duration: `${8 + Math.random() * 6}s`
       };
     });
     setObjectPositions(positions);
 
+    // 2. Destinations (Level 3)
     if (level === 3) {
-      // For level 3, destinations also need distinct positions
-      const destZones = shuffledZones.slice(currentMission.choices.length);
       const destPositions = currentMission.destinations.map((_, i) => {
-        const zone = destZones[i % destZones.length];
+        const cellIndex = shuffledCells[usedCount++];
+        const row = Math.floor(cellIndex / 5);
+        const col = cellIndex % 5;
         return {
-          top: `${zone.t + Math.random() * zone.h}%`,
-          left: `${zone.l + Math.random() * zone.w}%`,
+          top: `${row * 20 + 10}%`,
+          left: `${col * 20 + 10}%`,
           delay: `${Math.random() * 5}s`
         };
       });
       setDestinationPositions(destPositions);
     }
+
+    // 3. Decorative Objects (Clickable as "wrong") - Filter out duplicates from mission choices
+    const availableDecor = DECORATIVE_ASSETS.filter(asset => !currentMission.choices.includes(asset));
+    const shuffledDecor = [...availableDecor].sort(() => Math.random() - 0.5);
+    
+    const decorativeCount = Math.min(shuffledDecor.length, 5); // Max 5 unique decor items
+    const decor = [];
+    for (let i = 0; i < decorativeCount; i++) {
+      if (usedCount >= shuffledCells.length) break;
+      
+      const cellIndex = shuffledCells[usedCount++];
+      const row = Math.floor(cellIndex / 5);
+      const col = cellIndex % 5;
+      const type = shuffledDecor[i];
+      
+      decor.push({
+        type,
+        top: `${row * 20 + 10}%`,
+        left: `${col * 20 + 10}%`,
+        scale: 0.8 + Math.random() * 0.4,
+        opacity: 1.0,
+        duration: `${10 + Math.random() * 10}s`,
+        delay: `${Math.random() * 5}s`
+      });
+    }
+    setDecorativeObjects(decor);
+
   }, [currentMission, level]);
 
   useEffect(() => {
@@ -229,7 +279,8 @@ const GalaxyRescue = () => {
     } else {
       setFeedback('wrong');
       setAttempts(prev => prev + 1);
-      speechService.speak("One more try, space hero!");
+      // Explicitly tell "TRY AGAIN"
+      speechService.speak("TRY AGAIN");
       setTimeout(() => setFeedback(null), 1500);
     }
   };
@@ -258,6 +309,20 @@ const GalaxyRescue = () => {
     setGameState('playing');
   };
 
+  const resetGame = () => {
+    setLevel(1);
+    setMissionIndex(0);
+    setStars(0);
+    setStats({
+      totalMissions: 0,
+      firstAttemptSuccess: 0,
+      totalAttempts: 0
+    });
+    setGameState('intro');
+    setFeedback(null);
+    setAttempts(0);
+  };
+
   // Level 3 Drag and Drop handlers
   const onDragStart = (e, choice) => {
     if (level !== 3 || gameState !== 'playing') return;
@@ -278,7 +343,8 @@ const GalaxyRescue = () => {
 
   const renderChoices = () => {
     const choices = currentMission.choices;
-    if (objectPositions.length === 0) return null;
+    // Ensure we have positions for all choices to avoid undefined errors during transitions
+    if (objectPositions.length < choices.length) return null;
 
     return (
       <>
@@ -294,15 +360,15 @@ const GalaxyRescue = () => {
                 position: 'absolute',
                 top: pos.top,
                 left: pos.left,
-                transform: `scale(${pos.scale})`,
+                transform: `translate(-50%, -50%) scale(${pos.scale})`,
                 animation: `float ${pos.duration} ease-in-out infinite alternate`,
                 animationDelay: pos.delay
               }}
               className={`
                 w-40 h-40 flex items-center justify-center p-2
                 cursor-pointer transition-all hover:scale-110 active:scale-95
-                drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]
-                ${feedback === 'correct' && choice === currentMission.target ? 'drop-shadow-[0_0_30px_rgba(34,197,94,0.8)] scale-125' : ''}
+                drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]
+                ${feedback === 'correct' && choice === currentMission.target ? 'drop-shadow-[0_0_40px_rgba(34,197,94,0.8)] scale-125' : ''}
                 z-30
               `}
             >
@@ -323,7 +389,8 @@ const GalaxyRescue = () => {
   };
 
   const renderDestinations = () => {
-    if (level !== 3 || destinationPositions.length === 0) return null;
+    // Ensure we have positions for all destinations to avoid undefined errors
+    if (level !== 3 || destinationPositions.length < (currentMission.destinations?.length || 0)) return null;
     return (
       <>
         {currentMission.destinations.map((dest, idx) => {
@@ -338,11 +405,12 @@ const GalaxyRescue = () => {
                 position: 'absolute',
                 top: pos.top,
                 left: pos.left,
+                transform: 'translate(-50%, -50%)',
                 animation: `float 8s ease-in-out infinite alternate`,
                 animationDelay: pos.delay
               }}
               className={`
-                w-48 h-48 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-2 p-6
+                w-56 h-56 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-2 p-6
                 transition-all backdrop-blur-sm
                 ${draggedItem ? 'border-indigo-400 bg-indigo-50/20 animate-pulse' : 'border-white/20 bg-white/5'}
               `}
@@ -374,8 +442,9 @@ const GalaxyRescue = () => {
         style={{ backgroundImage: `url(${SPACE_BG})` }}
       />
 
-      {/* Overlay to ensure colors blend well */}
-      <div className={`absolute inset-0 bg-gradient-to-b ${PLANETS[level].color} pointer-events-none z-0`} />
+      {/* Overlay to ensure colors blend well and background is dark */}
+      <div className={`absolute inset-0 bg-black/60 backdrop-brightness-50 pointer-events-none z-0`} />
+      <div className={`absolute inset-0 bg-gradient-to-b ${PLANETS[level].color} mix-blend-overlay pointer-events-none z-0`} />
       
       {/* Header */}
       <header className="w-full max-w-6xl flex justify-between items-center mb-8 bg-black/40 backdrop-blur-xl p-6 rounded-[30px] border border-white/10 relative z-50 mt-4 mx-4">
@@ -412,17 +481,51 @@ const GalaxyRescue = () => {
             <p className="text-xl text-white/80 mb-10 font-medium">
               Listen carefully to the instructions and help the alien find her way home!
             </p>
-            <Button 
-              onClick={() => setGameState('playing')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white text-3xl font-black py-10 px-20 rounded-[40px] shadow-2xl transform transition-all active:scale-95"
-            >
-              START MISSION 🚀
-            </Button>
+            <div className="flex flex-col gap-4 w-full">
+              <Button 
+                onClick={() => setGameState('playing')}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-3xl font-black py-10 px-20 rounded-[40px] shadow-2xl transform transition-all active:scale-95"
+              >
+                {level > 1 || missionIndex > 0 ? 'RESUME MISSION 🚀' : 'START MISSION 🚀'}
+              </Button>
+              {(level > 1 || missionIndex > 0 || stars > 0) && (
+                <Button 
+                  onClick={resetGame}
+                  className="bg-white/10 hover:bg-white/20 text-white text-xl font-bold py-6 px-12 rounded-[30px] border border-white/20 transform transition-all active:scale-95"
+                >
+                  RESTART FROM BEGINNING 🔄
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
         {gameState === 'playing' && (
           <div className="flex-1 w-full relative">
+            {/* Decorative Background Objects (Now Clickable) */}
+            {decorativeObjects.map((obj, i) => (
+              <div
+                key={`decor-${i}`}
+                onClick={() => processChoice(false)}
+                style={{
+                  position: 'absolute',
+                  top: obj.top,
+                  left: obj.left,
+                  transform: `translate(-50%, -50%) scale(${obj.scale})`,
+                  opacity: obj.opacity,
+                  cursor: 'pointer',
+                  zIndex: 25
+                }}
+                className="w-32 h-32 flex items-center justify-center p-2 transition-all hover:scale-110 active:scale-95 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+              >
+                <TransparentImage 
+                  src={ASSET_IMAGES[obj.type]} 
+                  alt="" 
+                  className="w-full h-full object-contain animate-float"
+                />
+              </div>
+            ))}
+
             {/* Alien Mascot (Center) */}
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 transition-all duration-500 ${isSpeaking ? 'scale-110' : 'scale-100'} z-20`}>
               <TransparentImage 
@@ -517,12 +620,20 @@ const GalaxyRescue = () => {
               </div>
             </div>
 
-            <Button 
-              onClick={() => navigate('/games')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white text-3xl font-black py-8 px-16 rounded-[40px] shadow-2xl w-full"
-            >
-              FINISH 🚀
-            </Button>
+            <div className="flex flex-col gap-4 w-full">
+              <Button 
+                onClick={() => navigate('/games')}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-3xl font-black py-8 px-16 rounded-[40px] shadow-2xl w-full"
+              >
+                FINISH 🚀
+              </Button>
+              <Button 
+                onClick={resetGame}
+                className="bg-white/10 hover:bg-white/20 text-white text-xl font-bold py-6 px-12 rounded-[30px] border border-white/20"
+              >
+                PLAY AGAIN 🔄
+              </Button>
+            </div>
           </div>
         )}
 

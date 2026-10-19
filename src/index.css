@@ -7,12 +7,9 @@
 @import "tailwindcss";
 
 @theme {
-  /* Override the default dark variant to use the .dark class OR data-theme="dark" attribute */
-  --variant-dark: :where(.dark, [data-theme="dark"], .dark *, [data-theme="dark"] *);
-}
-
-/* Theme Variables */
-:root {
+  /* Use both class and attribute for maximum compatibility */
+  --variant-dark: :where(.dark, [data-theme="dark"]) &;
+  
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
   --color-secondary: #6b7280;
@@ -24,12 +21,16 @@
   
   --color-bg-light: #f9fafb;
   --color-bg-dark: #111827;
-  
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 /* Base Styles */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
 html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

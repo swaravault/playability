@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import heroImage from '../assets/images/hero-kids.png';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navItems = [
     { name: 'Home', icon: '🏠', path: '/about', active: true },
     { name: 'Games', icon: '🎮', path: '/games' },
@@ -14,49 +14,79 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-72 bg-[#F8F9FF] dark:bg-[#0F172A] h-screen fixed left-0 top-0 flex flex-col p-8 border-r border-blue-50/50 dark:border-slate-800 transition-colors duration-300">
-      <div className="flex items-center gap-3 mb-12">
-        <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-white text-2xl shadow-sm shadow-yellow-200">
-          🖐️
-        </div>
-        <h1 className="text-2xl font-black tracking-tight flex">
-          <span className="text-[#3B42C4] dark:text-[#818CF8]">Play</span>
-          <span className="text-[#F43F5E]">Ability</span>
-        </h1>
-      </div>
-
-      <nav className="flex-1 space-y-3">
-        {navItems.map((item) => (
-          <Link
-            key={item.name}
-            to={item.path}
-            className={`flex items-center gap-4 px-5 py-4 rounded-[24px] font-bold transition-all ${
-              item.active 
-                ? 'bg-white dark:bg-[#1E293B] text-[#5D5FEF] dark:text-[#A5B4FC] shadow-[0_8px_20px_rgba(0,0,0,0.04)]' 
-                : 'text-gray-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-gray-600 dark:hover:text-slate-300'
-            }`}
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop for mobile */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={toggleSidebar}
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+          
+          <motion.div 
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="w-72 bg-[#F8F9FF] dark:bg-[#0F172A] h-screen fixed left-0 top-0 flex flex-col p-8 border-r border-blue-50/50 dark:border-slate-800 transition-colors duration-300 z-50 shadow-2xl lg:shadow-none"
           >
-            <span className="text-2xl">{item.icon}</span>
-            <span className="text-lg tracking-tight">{item.name}</span>
-          </Link>
-        ))}
-      </nav>
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-white text-2xl shadow-sm shadow-yellow-200">
+                  🖐️
+                </div>
+                <h1 className="text-2xl font-black tracking-tight flex">
+                  <span className="text-[#3B42C4] dark:text-[#818CF8]">Play</span>
+                  <span className="text-[#F43F5E]">Ability</span>
+                </h1>
+              </div>
+              <button 
+                onClick={toggleSidebar}
+                className="lg:hidden text-2xl text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
 
-      <div className="mt-auto flex flex-col items-center p-6 bg-white/40 dark:bg-slate-800/40 rounded-[35px] border border-blue-50 dark:border-slate-800 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50/20 to-transparent dark:from-indigo-900/20 -z-10"></div>
-        <div className="w-16 h-16 mb-2 relative">
-           <span className="text-5xl">⭐</span>
-           <div className="absolute -top-1 -right-1 text-xl animate-pulse">✨</div>
-        </div>
-        <p className="text-sm font-black text-blue-600 dark:text-indigo-400 text-center leading-tight">
-          steps make<br/><span className="text-blue-800 dark:text-indigo-200">big progress!</span>
-        </p>
-        <div className="mt-3 flex gap-1">
-           <div className="text-blue-400 text-xl">💙</div>
-           <div className="text-blue-300 text-xl">💙</div>
-        </div>
-      </div>
-    </div>
+            <nav className="flex-1 space-y-3">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => window.innerWidth < 1024 && toggleSidebar()}
+                  className={`flex items-center gap-4 px-5 py-4 rounded-[24px] font-bold transition-all ${
+                    item.active 
+                      ? 'bg-white dark:bg-[#1E293B] text-[#5D5FEF] dark:text-[#A5B4FC] shadow-[0_8px_20px_rgba(0,0,0,0.04)]' 
+                      : 'text-gray-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-gray-600 dark:hover:text-slate-300'
+                  }`}
+                >
+                  <span className="text-2xl">{item.icon}</span>
+                  <span className="text-lg tracking-tight">{item.name}</span>
+                </Link>
+              ))}
+            </nav>
+
+            <div className="mt-auto flex flex-col items-center p-6 bg-white/40 dark:bg-slate-800/40 rounded-[35px] border border-blue-50 dark:border-slate-800 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50/20 to-transparent dark:from-indigo-900/20 -z-10"></div>
+              <div className="w-16 h-16 mb-2 relative">
+                <span className="text-5xl">⭐</span>
+                <div className="absolute -top-1 -right-1 text-xl animate-pulse">✨</div>
+              </div>
+              <p className="text-sm font-black text-blue-600 dark:text-indigo-400 text-center leading-tight">
+                steps make<br/><span className="text-blue-800 dark:text-indigo-200">big progress!</span>
+              </p>
+              <div className="mt-3 flex gap-1">
+                <div className="text-blue-400 text-xl">💙</div>
+                <div className="text-blue-300 text-xl">💙</div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -82,19 +112,33 @@ const SkillCard = ({ title, subtitle, description, icon, color, darkColor, bgCol
 
 const About = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020617] flex font-sans selection:bg-purple-100 dark:selection:bg-indigo-900 selection:text-purple-900 dark:selection:text-indigo-100 transition-colors duration-300">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
-      <main className="ml-72 flex-1 p-10 md:p-16 relative overflow-hidden">
+      <main className={`flex-1 p-10 md:p-16 relative overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:ml-72' : 'ml-0'}`}>
+        {/* Menu Toggle Button */}
+        <div className="absolute top-8 left-8 z-30">
+          <button 
+            onClick={toggleSidebar}
+            className="w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-50 dark:border-slate-700 flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer group"
+            title="Menu"
+          >
+            <span className="group-hover:rotate-12 transition-transform">☰</span>
+          </button>
+        </div>
+
         {/* Background Decorations */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#F5F7FF] dark:bg-[#1E293B]/30 rounded-full blur-[120px] -z-10 -mr-48 -mt-48 opacity-60"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#FFF5F7] dark:bg-indigo-900/10 rounded-full blur-[100px] -z-10 -ml-24 -mb-24 opacity-60"></div>
         
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
-          <div className="flex flex-col lg:flex-row items-center gap-16 mb-24 relative">
+          <div className="flex flex-col lg:flex-row items-center gap-16 mb-24 relative pt-20 lg:pt-0">
             <div className="flex-1 text-left z-10">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -138,7 +182,7 @@ const About = () => {
 
             <div className="flex-1 relative">
               {/* Generated Illustration blended into the page */}
-              <div className="relative w-full aspect-square max-lg:max-w-md mx-auto lg:scale-125 flex items-center justify-center">
+              <div className="relative w-full aspect-square max-lg:max-w-md mx-auto lg:scale-110 flex items-center justify-center">
                 {/* Circular soft background for blending */}
                 <div className="absolute w-[120%] h-[120%] bg-gradient-to-br from-blue-100/40 via-purple-50/30 to-white/0 dark:from-indigo-900/20 dark:via-slate-900/10 dark:to-transparent rounded-full blur-3xl -z-10 animate-pulse"></div>
                 
@@ -149,31 +193,30 @@ const About = () => {
                   className="relative w-full h-full p-4"
                 >
                   {/* The image with a circular crop and soft edges */}
-                  <div className="w-full h-full rounded-[60px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-8 border-white/50 dark:border-slate-800/50 relative transition-colors duration-300">
+                  <div className="w-full h-full rounded-[50px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-8 border-white/50 dark:border-slate-800/50 relative transition-colors duration-300">
                      <img 
                         src={heroImage} 
                         alt="Children learning together" 
-                        className="w-full h-full object-cover scale-110 hover:scale-105 transition-transform duration-1000"
+                        className="w-full h-full object-cover scale-110"
                       />
-                      {/* Vignette effect to blend edges */}
-                      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(255,255,255,0.1)] dark:shadow-[inset_0_0_100px_rgba(0,0,0,0.3)] transition-shadow duration-300"></div>
+                      <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(255,255,255,0.1)] dark:shadow-[inset_0_0_80px_rgba(0,0,0,0.3)]"></div>
                   </div>
 
-                  {/* Decorative labels floating around the image */}
-                  <div className="absolute -top-4 -right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-purple-50 dark:border-indigo-900/30 font-black text-[#7C3AED] dark:text-indigo-300 rotate-12 z-20 transition-colors duration-300">
+                  {/* Decorative labels - adjusted for better visibility */}
+                  <div className="absolute top-2 -right-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md px-5 py-2 rounded-2xl shadow-xl border border-purple-100 dark:border-indigo-900/50 font-black text-sm lg:text-lg text-[#7C3AED] dark:text-indigo-300 rotate-12 z-20 transition-all">
                     Learn
                   </div>
-                  <div className="absolute top-1/2 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-blue-50 dark:border-slate-700/30 font-black text-[#3B82F6] dark:text-blue-400 -rotate-6 z-20 transition-colors duration-300">
+                  <div className="absolute top-1/2 -right-6 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md px-5 py-2 rounded-2xl shadow-xl border border-blue-100 dark:border-slate-700/50 font-black text-sm lg:text-lg text-[#3B82F6] dark:text-blue-400 -rotate-6 z-20 transition-all">
                     Play
                   </div>
-                  <div className="absolute -bottom-4 right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-pink-50 dark:border-rose-900/30 font-black text-[#EC4899] dark:text-rose-400 rotate-3 z-20 transition-colors duration-300">
+                  <div className="absolute bottom-2 -right-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md px-5 py-2 rounded-2xl shadow-xl border border-pink-100 dark:border-rose-900/50 font-black text-sm lg:text-lg text-[#EC4899] dark:text-rose-400 rotate-3 z-20 transition-all">
                     Grow
                   </div>
                 </motion.div>
 
-                {/* Extra floating elements for depth */}
-                <div className="absolute top-0 left-0 text-5xl animate-float opacity-80" style={{ animationDelay: '1s' }}>✨</div>
-                <div className="absolute bottom-10 left-0 text-4xl animate-bounce opacity-60">🎈</div>
+                {/* Extra floating elements */}
+                <div className="absolute -top-4 -left-4 text-4xl animate-float opacity-80">✨</div>
+                <div className="absolute -bottom-4 -left-4 text-3xl animate-bounce opacity-60">🎈</div>
               </div>
             </div>
           </div>

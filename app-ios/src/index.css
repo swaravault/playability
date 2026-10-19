@@ -1,5 +1,6 @@
 /* iOS Platform CSS Overrides */
 @import "../../src/index.css";
+@source "../../src";
 
 /* iOS Safe Area Insets */
 body {
