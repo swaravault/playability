@@ -4,52 +4,6 @@ import speechService from '@/utils/speech';
 import { useNavigate } from 'react-router-dom';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
-const MISSIONS = {
-  1: [
-    { id: '1-1', text: "Find the golden key", target: 'key', color: 'golden', choices: ['key', 'rocket', 'crystal'] },
-    { id: '1-2', text: "Find the red apple", target: 'apple', color: 'red', choices: ['apple', 'leaf', 'blue-star'] },
-    { id: '1-3', text: "Find the blue star", target: 'blue-star', color: 'blue', choices: ['blue-star', 'moon', 'key'] },
-    { id: '1-4', text: "Find the green leaf", target: 'leaf', color: 'green', choices: ['leaf', 'apple', 'crystal'] },
-    { id: '1-5', text: "Find the yellow moon", target: 'moon', color: 'yellow', choices: ['moon', 'blue-star', 'rocket'] },
-  ],
-  2: [
-    { id: '2-1', text: "Find the blue crystal", target: 'crystal', color: 'blue', choices: ['crystal', 'key', 'rocket', 'alien'] },
-    { id: '2-2', text: "Find the red rocket", target: 'rocket', color: 'red', choices: ['rocket', 'blue-star', 'purple-planet', 'key'] },
-    { id: '2-3', text: "Find the white spaceship", target: 'white-spaceship', color: 'white', choices: ['white-spaceship', 'crystal', 'alien', 'moon'] },
-    { id: '2-4', text: "Find the green alien", target: 'alien', color: 'green', choices: ['alien', 'purple-planet', 'rocket', 'blue-star'] },
-    { id: '2-5', text: "Find the purple planet", target: 'purple-planet', color: 'purple', choices: ['purple-planet', 'moon', 'crystal', 'white-spaceship'] },
-  ],
-  3: [
-    { 
-      id: '3-1', 
-      text: "Find the blue crystal and take it to the spaceship", 
-      target: 'crystal', 
-      color: 'blue', 
-      destination: 'white-spaceship',
-      choices: ['crystal', 'key', 'rocket'],
-      destinations: ['white-spaceship', 'station', 'moon']
-    },
-    { 
-      id: '3-2', 
-      text: "Find the red star and place it beside the moon", 
-      target: 'red-star', 
-      color: 'red', 
-      destination: 'moon',
-      choices: ['red-star', 'apple', 'leaf'],
-      destinations: ['moon', 'white-spaceship', 'purple-planet']
-    },
-    { 
-      id: '3-3', 
-      text: "Find the golden key and move it to the space station", 
-      target: 'key', 
-      color: 'golden', 
-      destination: 'station',
-      choices: ['key', 'crystal', 'rocket'],
-      destinations: ['station', 'moon', 'white-spaceship']
-    },
-  ]
-};
-
 const ASSET_IMAGES = {
   key: '/assets/games/galaxy-rescue/images/golden-key.png',
   rocket: '/assets/games/galaxy-rescue/images/red-rocket.png',
@@ -235,6 +189,21 @@ const TransparentImage = ({ src, alt, className, ...props }) => {
   );
 };
 
+const ASSET_LABELS = {
+  key: 'golden key',
+  rocket: 'red rocket',
+  crystal: 'blue crystal',
+  apple: 'red apple',
+  leaf: 'green leaf',
+  'blue-star': 'blue star',
+  'red-star': 'red star',
+  moon: 'yellow moon',
+  alien: 'green alien',
+  'purple-planet': 'purple planet',
+  'white-spaceship': 'white spaceship',
+  station: 'space station'
+};
+
 const GalaxyRescue = () => {
   const navigate = useNavigate();
   
@@ -287,11 +256,54 @@ const GalaxyRescue = () => {
 
   // Drag and Drop state for Level 3
   const [draggedItem, setDraggedItem] = useState(null);
+  const [foundTargets, setFoundTargets] = useState([]);
+  const [missions, setMissions] = useState([]);
 
-  const currentMission = useMemo(() => MISSIONS[level] ? MISSIONS[level][missionIndex] : null, [level, missionIndex]);
+  const generateMissions = useCallback((targetLevel) => {
+    const items = ['key', 'rocket', 'crystal', 'apple', 'leaf', 'blue-star', 'red-star', 'moon', 'alien', 'purple-planet', 'white-spaceship'];
+    const destinations = ['white-spaceship', 'station', 'moon', 'purple-planet'];
+    
+    const newMissions = [];
+    for (let i = 0; i < 3; i++) {
+      const shuffledItems = [...items].sort(() => Math.random() - 0.5);
+      const shuffledDests = [...destinations].sort(() => Math.random() - 0.5);
+      
+      let mission = { id: `${targetLevel}-${i}` };
+      
+      if (targetLevel === 1) {
+        const target = shuffledItems[0];
+        mission.target = target;
+        mission.text = `Find the ${ASSET_LABELS[target]}`;
+        mission.choices = shuffledItems.slice(0, 3);
+      } else if (targetLevel === 2) {
+        const target1 = shuffledItems[0];
+        const target2 = shuffledItems[1];
+        mission.targets = [target1, target2];
+        mission.text = `Find the ${ASSET_LABELS[target1]} and the ${ASSET_LABELS[target2]}`;
+        mission.choices = shuffledItems.slice(0, 4);
+      } else if (targetLevel === 3) {
+        const target = shuffledItems[0];
+        const dest = shuffledDests[0];
+        mission.target = target;
+        mission.destination = dest;
+        mission.text = `Find the ${ASSET_LABELS[target]} and take it to the ${ASSET_LABELS[dest]}`;
+        mission.choices = shuffledItems.slice(0, 3);
+        mission.destinations = shuffledDests.slice(0, 3);
+      }
+      
+      newMissions.push(mission);
+    }
+    setMissions(newMissions);
+  }, []);
+
+  useEffect(() => {
+    generateMissions(level);
+  }, [level, generateMissions]);
+
+  const currentMission = useMemo(() => missions[missionIndex] || null, [missions, missionIndex]);
 
   const generatePositions = useCallback(() => {
-    if (!currentMission) return;
+    if (!currentMission || !currentMission.choices) return;
     
     const gridSize = 9;
     const totalCells = gridSize * gridSize;
@@ -334,7 +346,7 @@ const GalaxyRescue = () => {
     });
     setObjectPositions(positions);
 
-    if (level === 3) {
+    if (level === 3 && currentMission.destinations) {
       const destPositions = currentMission.destinations.map((_, i) => {
         const rows = [1, 4, 7];
         const cols = [6, 8, 6]; 
@@ -380,7 +392,10 @@ const GalaxyRescue = () => {
     setDecorativeObjects(decor);
   }, [currentMission, level]);
 
-  useEffect(() => { generatePositions(); }, [generatePositions, missionIndex, level]);
+  useEffect(() => { 
+    generatePositions(); 
+    setFoundTargets([]);
+  }, [generatePositions, missionIndex, level]);
 
   const playInstruction = useCallback(() => {
     if (!currentMission) return;
@@ -420,11 +435,27 @@ const GalaxyRescue = () => {
   }, [gameState, speechRate, speechVoice]);
 
   const handleChoiceClick = (choice) => {
-    if (gameState !== 'playing' || isSpeaking) return;
+    if (gameState !== 'playing' || isSpeaking || !currentMission) return;
     if (level === 3) {
       setDraggedItem(prev => prev === choice ? null : choice);
       return;
     }
+    
+    if (level === 2) {
+      if (foundTargets.includes(choice)) return;
+      const nextTarget = currentMission.targets[foundTargets.length];
+      if (choice === nextTarget) {
+        const nextFound = [...foundTargets, choice];
+        setFoundTargets(nextFound);
+        if (nextFound.length === currentMission.targets.length) {
+          processChoice(true);
+        }
+      } else {
+        processChoice(false);
+      }
+      return;
+    }
+
     processChoice(choice === currentMission.target);
   };
 
@@ -448,7 +479,7 @@ const GalaxyRescue = () => {
     setFeedback(null);
     setAttempts(0);
     setStats(prev => ({ ...prev, totalMissions: prev.totalMissions + 1 }));
-    if (missionIndex < MISSIONS[level].length - 1) {
+    if (missionIndex < missions.length - 1) {
       setMissionIndex(prev => prev + 1);
       setGameState('playing');
     } else {
@@ -477,12 +508,16 @@ const GalaxyRescue = () => {
   };
 
   const renderChoices = () => {
-    if (!currentMission) return null;
+    if (!currentMission || !currentMission.choices) return null;
     return currentMission.choices.map((choice, idx) => {
       const pos = objectPositions[idx];
       if (!pos) return null;
+      
+      const isCorrectlyFound = (level === 2 && foundTargets.includes(choice)) || 
+                              (feedback === 'correct' && choice === currentMission.target);
+
       return (
-        <div key={`${currentMission.id}-${idx}`} draggable={level === 3} onDragStart={(e) => onDragStart(e, choice)} onClick={() => handleChoiceClick(choice)} style={{ position: 'absolute', top: pos.top, left: pos.left, transform: `translate(-50%, -50%) scale(${pos.scale})`, animation: `float ${pos.duration} ease-in-out infinite alternate`, animationDelay: pos.delay }} className={`w-28 h-28 md:w-40 md:h-40 flex items-center justify-center p-2 cursor-pointer transition-all hover:scale-110 active:scale-95 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] ${feedback === 'correct' && choice === currentMission.target ? 'drop-shadow-[0_0_40px_rgba(34,197,94,0.8)] scale-125' : ''} ${draggedItem === choice ? 'drop-shadow-[0_0_40px_rgba(79,70,229,0.8)] scale-110 brightness-125' : ''} z-30`}>
+        <div key={`${currentMission.id}-${idx}`} draggable={level === 3} onDragStart={(e) => onDragStart(e, choice)} onClick={() => handleChoiceClick(choice)} style={{ position: 'absolute', top: pos.top, left: pos.left, transform: `translate(-50%, -50%) scale(${pos.scale})`, animation: `float ${pos.duration} ease-in-out infinite alternate`, animationDelay: pos.delay }} className={`w-28 h-28 md:w-40 md:h-40 flex items-center justify-center p-2 cursor-pointer transition-all hover:scale-110 active:scale-95 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] ${isCorrectlyFound ? 'drop-shadow-[0_0_40px_rgba(34,197,94,0.8)] scale-125' : ''} ${draggedItem === choice ? 'drop-shadow-[0_0_40px_rgba(79,70,229,0.8)] scale-110 brightness-125' : ''} z-30`}>
           <TransparentImage src={ASSET_IMAGES[choice]} alt={choice} className="w-full h-full" />
         </div>
       );
@@ -578,7 +613,7 @@ const GalaxyRescue = () => {
   };
 
   const renderDestinations = () => {
-    if (level !== 3 || !currentMission || destinationPositions.length < (currentMission.destinations?.length || 0)) return null;
+    if (level !== 3 || !currentMission || !currentMission.destinations || destinationPositions.length < currentMission.destinations.length) return null;
     return currentMission.destinations.map((dest, idx) => {
       const pos = destinationPositions[idx];
       return (
@@ -689,11 +724,11 @@ const GalaxyRescue = () => {
       {gameState === 'playing' && (
         <footer className="w-full max-w-4xl mt-8 relative z-50 p-4 md:p-8">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-xs font-black uppercase tracking-widest opacity-70">Mission {missionIndex + 1} of {MISSIONS[level] ? MISSIONS[level].length : 0}</span>
-            <span className="text-xs font-black uppercase tracking-widest opacity-70">{MISSIONS[level] ? Math.round(((missionIndex) / MISSIONS[level].length) * 100) : 0}% Complete</span>
+            <span className="text-xs font-black uppercase tracking-widest opacity-70">Mission {missionIndex + 1} of {missions.length}</span>
+            <span className="text-xs font-black uppercase tracking-widest opacity-70">{missions.length ? Math.round(((missionIndex) / missions.length) * 100) : 0}% Complete</span>
           </div>
           <div className="w-full h-4 bg-white/20 rounded-full overflow-hidden border border-white/10">
-            <div className="h-full bg-white transition-all duration-500 ease-out" style={{ width: `${MISSIONS[level] ? (missionIndex / MISSIONS[level].length) * 100 : 0}%` }} />
+            <div className="h-full bg-white transition-all duration-500 ease-out" style={{ width: `${missions.length ? (missionIndex / missions.length) * 100 : 0}%` }} />
           </div>
         </footer>
       )}
