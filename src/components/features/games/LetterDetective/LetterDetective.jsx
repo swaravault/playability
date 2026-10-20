@@ -1,13 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui';
+import { Button, Modal } from '@/components/ui';
 import speechService from '@/utils/speech';
 import useLetterDetectiveStore from '@/store/useLetterDetectiveStore';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 // Components
 import DetectiveMascot from './DetectiveMascot';
 import LetterGrid from './LetterGrid';
+
+const STORAGE_KEYS = {
+  SPEECH_RATE: 'letter_detective_speech_rate',
+  SPEECH_VOICE: 'letter_detective_speech_voice'
+};
 
 const LetterDetective = () => {
   const navigate = useNavigate();
@@ -21,7 +27,8 @@ const LetterDetective = () => {
     startNewRound,
     incrementFoundCount,
     logMistake,
-    setLevel
+    setLevel,
+    resetGame: resetStoreGame
   } = useLetterDetectiveStore();
 
   const [gameState, setGameState] = useState('intro'); // 'intro', 'playing', 'word-connection', 'round-complete'
@@ -29,6 +36,29 @@ const LetterDetective = () => {
   const [speechText, setSpeechText] = useState('');
   const [hintTimestamp, setHintTimestamp] = useState(0);
   const [isHintUsed, setIsHintUsed] = useState(false);
+
+  // Audio Settings
+  const [speechRate, setSpeechRate] = useLocalStorage(STORAGE_KEYS.SPEECH_RATE, 0.85);
+  const [speechVoice, setSpeechVoice] = useLocalStorage(STORAGE_KEYS.SPEECH_VOICE, null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
+
+  // Audio Settings unmount cleanup
+  useEffect(() => {
+    return () => speechService.stop();
+  }, []);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = speechService.getAvailableVoices();
+      setAvailableVoices(voices);
+    };
+    loadVoices();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   // Initialize game
   useEffect(() => {
@@ -42,7 +72,10 @@ const LetterDetective = () => {
     if (isHintUsed) return;
     setHintTimestamp(Date.now());
     setIsHintUsed(true);
-    speechService.speak("Here is one!");
+    speechService.speak("Here is one!", {
+      rate: speechRate,
+      voice: speechVoice
+    });
     
     // Clear hint timestamp after usage period
     setTimeout(() => {
@@ -57,14 +90,17 @@ const LetterDetective = () => {
     setSpeechText(text);
     setIsSpeaking(true);
     speechService.speak(text, {
+      rate: speechRate,
+      voice: speechVoice,
       onEnd: () => setIsSpeaking(false)
     });
-  }, [currentPair]);
+  }, [currentPair, speechRate, speechVoice]);
 
   useEffect(() => {
     if (gameState === 'playing' && currentPair) {
       speakInstructions();
     }
+    return () => speechService.stop();
   }, [gameState, currentPair, speakInstructions]);
 
   useEffect(() => {
@@ -74,19 +110,28 @@ const LetterDetective = () => {
       setSpeechText(text);
       setIsSpeaking(true);
       speechService.speak(text, {
+        rate: speechRate,
+        voice: speechVoice,
         onEnd: () => setIsSpeaking(false)
       });
     }
-  }, [isGameComplete, gameState, currentPair]);
+    return () => speechService.stop();
+  }, [isGameComplete, gameState, currentPair, speechRate, speechVoice]);
 
   const handleCorrect = (letter) => {
     incrementFoundCount();
-    speechService.speak(`Great! That's ${letter}!`);
+    speechService.speak(`Great! That's ${letter}!`, {
+      rate: speechRate,
+      voice: speechVoice
+    });
   };
 
   const handleWrong = (letter) => {
     logMistake(currentPair.target, letter);
-    speechService.speak(`That's ${letter}. Try again!`);
+    speechService.speak(`That's ${letter}. Try again!`, {
+      rate: speechRate,
+      voice: speechVoice
+    });
   };
 
   const handleNextRound = () => {
@@ -95,10 +140,18 @@ const LetterDetective = () => {
     setGameState('playing');
   };
 
+  const resetGame = () => {
+    if (window.confirm("Are you sure you want to reset your progress?")) {
+      resetStoreGame();
+      setGameState('intro');
+      setIsSettingsOpen(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-400 to-green-400 dark:from-slate-900 dark:to-[#020617] flex flex-col p-4 md:p-8 font-sans text-blue-900 dark:text-blue-100 transition-colors duration-300">
       {/* Header */}
-      <header className="w-full max-w-6xl mx-auto flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 md:p-6 rounded-[32px] shadow-xl mb-8 border-b-4 border-blue-100 dark:border-slate-800 transition-colors">
+      <header className="w-full max-w-6xl mx-auto flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 md:p-6 rounded-[32px] shadow-xl mb-8 border-b-4 border-blue-100 dark:border-slate-800 transition-colors relative z-50">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 text-white p-2 rounded-2xl text-2xl shadow-inner">🔍</div>
           <div>
@@ -121,6 +174,13 @@ const LetterDetective = () => {
           </div>
           <Button 
             variant="ghost"
+            onClick={() => setIsSettingsOpen(true)}
+            className="text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition-colors p-2"
+          >
+            ⚙️
+          </Button>
+          <Button 
+            variant="ghost"
             onClick={() => navigate('/games')}
             className="text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
@@ -140,13 +200,13 @@ const LetterDetective = () => {
           />
           
           <div className="mt-12 w-full space-y-4">
-            <Button 
+            <button 
               onClick={speakInstructions}
               disabled={isSpeaking}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white border-b-4 border-blue-800 py-6 rounded-2xl flex items-center justify-center gap-3 font-black text-lg shadow-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white border-b-4 border-blue-800 py-6 rounded-2xl flex items-center justify-center gap-3 font-black text-lg shadow-lg disabled:opacity-50"
             >
               <span>🔊</span> REPEAT
-            </Button>
+            </button>
             <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-2xl text-center border-2 border-white/20 dark:border-slate-700 backdrop-blur-sm transition-colors">
               <p className="text-sm font-bold opacity-70 text-blue-900 dark:text-blue-200 uppercase tracking-widest">DIFFICULTY</p>
               <div className="flex justify-center gap-2 mt-2">
@@ -314,6 +374,69 @@ const LetterDetective = () => {
       <div className="fixed bottom-0 left-0 w-full h-32 bg-gradient-to-t from-green-500/20 to-transparent dark:from-slate-900 pointer-events-none -z-10" />
       <div className="fixed -bottom-10 -left-10 w-40 h-40 bg-green-300 dark:bg-green-900 rounded-full blur-3xl opacity-50 dark:opacity-20 -z-10" />
       <div className="fixed -top-10 -right-10 w-60 h-60 bg-blue-300 dark:bg-blue-900 rounded-full blur-3xl opacity-30 dark:opacity-10 -z-10" />
+
+      {/* Settings Modal */}
+      <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="GAME SETTINGS">
+        <div className="p-6 flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <label className="text-lg font-bold text-gray-700 dark:text-white/70 uppercase tracking-widest">Audio Speed</label>
+              <span className="bg-blue-600 px-4 py-1 rounded-full text-sm font-black text-white">{speechRate.toFixed(2)}x</span>
+            </div>
+            <input 
+              type="range" 
+              min="0.5" 
+              max="1.5" 
+              step="0.05" 
+              value={speechRate} 
+              onChange={(e) => setSpeechRate(parseFloat(e.target.value))} 
+              className="w-full h-3 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+            />
+            <div className="flex justify-between text-[10px] font-bold opacity-40 uppercase text-gray-500 dark:text-white">
+              <span>Slower</span>
+              <span>Normal</span>
+              <span>Faster</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+            <label className="text-lg font-bold text-gray-700 dark:text-white/70 uppercase tracking-widest">Voice Accent</label>
+            <select 
+              value={speechVoice || ''} 
+              onChange={(e) => setSpeechVoice(e.target.value)} 
+              className="w-full bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl p-4 text-gray-900 dark:text-white font-bold outline-none focus:border-blue-500 appearance-none"
+            >
+              <option value="" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">Default (Indian English)</option>
+              {availableVoices.map((v) => (
+                <option key={v.voiceURI} value={v.voiceURI} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <Button 
+            onClick={() => { speechService.speak("Testing audio", { rate: speechRate, voice: speechVoice }); }} 
+            className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-blue-600 dark:text-white border border-gray-200 dark:border-white/10 py-4 rounded-2xl flex items-center justify-center gap-2"
+          >
+            🔊 TEST AUDIO
+          </Button>
+          
+          <Button 
+            onClick={resetGame} 
+            className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 py-4 rounded-2xl flex items-center justify-center gap-2 font-bold"
+          >
+            🔄 RESET PROGRESS
+          </Button>
+          
+          <Button 
+            onClick={() => setIsSettingsOpen(false)} 
+            className="bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-3xl font-black text-xl shadow-xl"
+          >
+            SAVE & CLOSE
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

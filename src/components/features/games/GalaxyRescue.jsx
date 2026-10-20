@@ -207,8 +207,6 @@ const ASSET_LABELS = {
 const GalaxyRescue = () => {
   const navigate = useNavigate();
   
-  // Persisted state
-  const [gameState, setGameState] = useLocalStorage(STORAGE_KEYS.GAME_STATE, 'map');
   const [level, setLevel] = useLocalStorage(STORAGE_KEYS.LEVEL, 1);
   const [missionIndex, setMissionIndex] = useLocalStorage(STORAGE_KEYS.MISSION, 0);
   const [stars, setStars] = useLocalStorage(STORAGE_KEYS.STARS, 0);
@@ -229,6 +227,7 @@ const GalaxyRescue = () => {
   }, [level, maxUnlockedLevel, setMaxUnlockedLevel]);
 
   // Session state
+  const [gameState, setGameState] = useState('intro');
   const [feedback, setFeedback] = useState(null); // 'correct', 'wrong'
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [attempts, setAttempts] = useState(0);
