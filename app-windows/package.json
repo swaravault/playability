@@ -1,7 +1,7 @@
 {
   "name": "playability-windows",
   "private": true,
-  "version": "1.10.19",
+  "version": "1.10.20",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",

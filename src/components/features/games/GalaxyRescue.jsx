@@ -83,6 +83,8 @@ const PLANETS = {
 };
 
 const MIKA_INTRO = "I am Mika the alien. My friend Sara is lost she is on another planet. Can you help me get to her by following the clues and finding objects?";
+const MIKA_SUCCESS = "You did a great job ! Thank you for helping me find my friend Sara !";
+const SARA_IMAGE = '/assets/games/galaxy-rescue/images/sara.png';
 
 const STORAGE_KEYS = {
   LEVEL: 'galaxy_rescue_level',
@@ -120,9 +122,12 @@ const TransparentImage = ({ src, alt, className, style, ...props }) => {
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Use a threshold to remove dark backgrounds (Gemini black might not be pure #000)
-        // Adjusting threshold to be more aggressive
+        // Remove black/dark (threshold < 40)
         if (r < 40 && g < 40 && b < 40) {
+          data[i + 3] = 0;
+        }
+        // Remove white/light (threshold > 210)
+        else if (r > 210 && g > 210 && b > 210) {
           data[i + 3] = 0;
         }
       }
@@ -201,11 +206,13 @@ const GalaxyRescue = () => {
     const gridSize = 9;
     const totalCells = gridSize * gridSize;
     
-    // Avoid center 3x3 area for mascot (Rows 3-5, Cols 3-5)
+    // Avoid larger center area for the bigger mascot (Rows 2-6, Cols 2-6 in 9x9 grid)
     const forbiddenCells = [
-      30, 31, 32,
-      39, 40, 41,
-      48, 49, 50
+      20, 21, 22, 23, 24,
+      29, 30, 31, 32, 33,
+      38, 39, 40, 41, 42,
+      47, 48, 49, 50, 51,
+      56, 57, 58, 59, 60
     ];
     
     const availableCells = Array.from({length: totalCells}, (_, i) => i).filter(i => !forbiddenCells.includes(i));
@@ -342,6 +349,24 @@ const GalaxyRescue = () => {
       const timer = setTimeout(() => {
         setIsSpeaking(true);
         speechService.speak(MIKA_INTRO, {
+          rate: speechRate,
+          voice: speechVoice,
+          onEnd: () => setIsSpeaking(false)
+        });
+      }, 1000);
+      return () => {
+        clearTimeout(timer);
+        speechService.stop();
+      };
+    }
+  }, [gameState, speechRate, speechVoice]);
+
+  // Summary speech
+  useEffect(() => {
+    if (gameState === 'summary') {
+      const timer = setTimeout(() => {
+        setIsSpeaking(true);
+        speechService.speak(MIKA_SUCCESS, {
           rate: speechRate,
           voice: speechVoice,
           onEnd: () => setIsSpeaking(false)
@@ -752,9 +777,18 @@ const GalaxyRescue = () => {
 
         {gameState === 'summary' && (
           <div className="bg-black/60 backdrop-blur-xl text-white p-10 rounded-[50px] shadow-2xl flex flex-col items-center text-center max-w-2xl animate-in zoom-in duration-500 z-50 border border-white/10">
-            <div className="text-7xl mb-4">🏆</div>
+            <div className="flex gap-8 mb-4">
+              <div className="w-48 h-48 md:w-64 md:h-64 animate-alien-float">
+                <TransparentImage src={MASCOT_IMAGE} alt="Mika" className="w-full h-full object-contain brightness-125" />
+              </div>
+              <div className="w-48 h-48 md:w-64 md:h-64 animate-alien-float" style={{ animationDelay: '0.5s' }}>
+                <TransparentImage src={SARA_IMAGE} alt="Sara" className="w-full h-full object-contain brightness-125" />
+              </div>
+            </div>
             <h2 className="text-4xl font-black mb-2 uppercase tracking-tighter">Mission Accomplished!</h2>
-            <p className="text-white/50 font-bold mb-8 uppercase tracking-widest">Final Report</p>
+            <p className="text-xl text-white/90 font-medium italic mb-8 px-4">
+              "{MIKA_SUCCESS}"
+            </p>
             
             <div className="grid grid-cols-2 gap-4 w-full mb-10">
               <div className="bg-white/5 p-6 rounded-3xl border-b-4 border-white/10">
