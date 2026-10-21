@@ -3,11 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import heroImage from '../assets/images/hero-kids.png';
+import MoodTracker from '../components/features/MoodTracker';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, onMoodClick }) => {
   const navItems = [
     { name: 'Home', icon: '🏠', path: '/about', active: true },
     { name: 'Games', icon: '🎮', path: '/games' },
+    { name: 'Mood', icon: '😊', onClick: onMoodClick },
     // Removed Stories tab as requested
     { name: 'Progress', icon: '⭐', path: '#' },
     { name: 'Settings', icon: '⚙️', path: '/settings' },
@@ -52,21 +54,45 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </div>
 
             <nav className="flex-1 space-y-3">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => window.innerWidth < 1024 && toggleSidebar()}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-[24px] font-bold transition-all ${
-                    item.active 
-                      ? 'bg-white dark:bg-[#1E293B] text-[#5D5FEF] dark:text-[#A5B4FC] shadow-[0_8px_20px_rgba(0,0,0,0.04)]' 
-                      : 'text-gray-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-gray-600 dark:hover:text-slate-300'
-                  }`}
-                >
-                  <span className="text-2xl">{item.icon}</span>
-                  <span className="text-lg tracking-tight">{item.name}</span>
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const content = (
+                  <>
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="text-lg tracking-tight">{item.name}</span>
+                  </>
+                );
+                const className = `flex items-center gap-4 px-5 py-4 rounded-[24px] w-full text-left font-bold transition-all ${
+                  item.active 
+                    ? 'bg-white dark:bg-[#1E293B] text-[#5D5FEF] dark:text-[#A5B4FC] shadow-[0_8px_20px_rgba(0,0,0,0.04)]' 
+                    : 'text-gray-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-gray-600 dark:hover:text-slate-300'
+                }`;
+
+                if (item.onClick) {
+                  return (
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        item.onClick();
+                        if (window.innerWidth < 1024) toggleSidebar();
+                      }}
+                      className={className}
+                    >
+                      {content}
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => window.innerWidth < 1024 && toggleSidebar()}
+                    className={className}
+                  >
+                    {content}
+                  </Link>
+                );
+              })}
             </nav>
 
             <div className="mt-auto flex flex-col items-center p-6 bg-white/40 dark:bg-slate-800/40 rounded-[35px] border border-blue-50 dark:border-slate-800 relative overflow-hidden">
@@ -90,7 +116,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-const SkillCard = ({ title, subtitle, description, icon, color, darkColor, bgColor, darkBg, arrowBg }) => (
+const SkillCard = ({ title, subtitle, description, icon, color, darkColor, bgColor, darkBg }) => (
   <div className={`${bgColor} ${darkBg} p-8 rounded-[40px] border border-transparent hover:border-white dark:hover:border-slate-700 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col gap-4 relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-500`}>
     <div className="flex items-center gap-5">
       <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-3xl shadow-sm flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
@@ -101,24 +127,26 @@ const SkillCard = ({ title, subtitle, description, icon, color, darkColor, bgCol
         <p className={`text-base font-bold ${color} ${darkColor} opacity-70 uppercase tracking-widest`}>{subtitle}</p>
       </div>
     </div>
-    <p className="text-gray-500 dark:text-slate-400 font-bold leading-relaxed text-base pr-12">
+    <p className="text-gray-500 dark:text-slate-400 font-bold leading-relaxed text-base">
       {description}
     </p>
-    <div className={`absolute bottom-8 right-8 w-12 h-12 ${arrowBg} rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg transform group-hover:scale-110 transition-all duration-300`}>
-      <span className="text-2xl font-bold">→</span>
-    </div>
   </div>
 );
 
 const About = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMoodOpen, setIsMoodOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020617] flex font-sans selection:bg-purple-100 dark:selection:bg-indigo-900 selection:text-purple-900 dark:selection:text-indigo-100 transition-colors duration-300">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        onMoodClick={() => setIsMoodOpen(true)} 
+      />
       
       <main className={`flex-1 p-10 md:p-16 relative overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:ml-72' : 'ml-0'}`}>
         {/* Menu Toggle Button */}
@@ -170,14 +198,25 @@ const About = () => {
                 PlayAbility is a safe, supportive and inclusive platform where children can explore, learn and grow through interactive games, stories and activities.
               </p>
 
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-[#5D5FEF] hover:bg-[#4F46E5] text-white font-black py-5 px-14 rounded-full text-2xl shadow-[0_15px_35px_rgba(93,95,239,0.3)] flex items-center gap-4 transition-all group cursor-pointer"
-                onClick={() => navigate('/games')}
-              >
-                <span className="text-3xl">🎮</span> Let's Play <span className="group-hover:translate-x-2 transition-transform">→</span>
-              </motion.button>
+              <div className="flex flex-wrap gap-6">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#5D5FEF] hover:bg-[#4F46E5] text-white font-black py-5 px-14 rounded-full text-2xl shadow-[0_15px_35px_rgba(93,95,239,0.3)] flex items-center gap-4 transition-all group cursor-pointer"
+                  onClick={() => navigate('/games')}
+                >
+                  <span className="text-3xl">🎮</span> Let's Play <span className="group-hover:translate-x-2 transition-transform">→</span>
+                </motion.button>
+
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-white dark:bg-slate-800 text-[#1E293B] dark:text-white font-black py-5 px-10 rounded-full text-2xl shadow-xl border-2 border-blue-50 dark:border-slate-700 flex items-center gap-4 transition-all group cursor-pointer"
+                  onClick={() => setIsMoodOpen(true)}
+                >
+                  <span className="text-3xl">😊</span> How are you?
+                </motion.button>
+              </div>
             </div>
 
             <div className="flex-1 relative">
@@ -221,6 +260,9 @@ const About = () => {
             </div>
           </div>
 
+          {/* Mood Popup */}
+          <MoodTracker isOpen={isMoodOpen} onClose={() => setIsMoodOpen(false)} />
+
           {/* Skills Section */}
           <div className="mb-20">
             <div className="flex items-center gap-4 mb-3">
@@ -235,13 +277,12 @@ const About = () => {
               <SkillCard 
                 title="EXPRESS"
                 subtitle="Visual Learning"
-                description="Games designed around pictures, symbols and signs — not long texts or audio cues — so every child can learn visually."
+                description="Games designed around simple pictures, audio, text and small missions so every child can learn visually."
                 icon="🎨"
                 color="text-[#7C3AED]"
                 darkColor="dark:text-indigo-300"
                 bgColor="bg-[#F8F7FF]"
                 darkBg="dark:bg-[#1E1B4B]/40"
-                arrowBg="bg-[#7C3AED]"
               />
               <SkillCard 
                 title="EMPOWER"
@@ -252,7 +293,6 @@ const About = () => {
                 darkColor="dark:text-emerald-300"
                 bgColor="bg-[#F0FDF4]"
                 darkBg="dark:bg-[#064E3B]/20"
-                arrowBg="bg-[#059669]"
               />
               <SkillCard 
                 title="CONNECT"
@@ -263,7 +303,6 @@ const About = () => {
                 darkColor="dark:text-rose-300"
                 bgColor="bg-[#FFF1F2]"
                 darkBg="dark:bg-[#881337]/20"
-                arrowBg="bg-[#E11D48]"
               />
               <SkillCard 
                 title="GROW"
@@ -274,7 +313,6 @@ const About = () => {
                 darkColor="dark:text-amber-300"
                 bgColor="bg-[#FFFBEB]"
                 darkBg="dark:bg-[#78350F]/20"
-                arrowBg="bg-[#D97706]"
               />
             </div>
           </div>
